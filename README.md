@@ -1,17 +1,51 @@
-# Quickstart Plugin for NodeBB
+# NodeBB Secure PDF Viewer Plugin
 
-A starter kit for quickly creating NodeBB plugins. Comes with a pre-setup SCSS file, server side JS script with an `static:app.load` hook, and a client-side script. Most plugins need at least one of the above, so this ought to save you some time. For a full list of hooks have a look at our [wiki page](https://github.com/NodeBB/NodeBB/wiki/Hooks), and for more information about creating plugins please visit our [documentation portal](https://docs.nodebb.org/).
+A professional, secure, and feature-rich PDF viewer plugin for NodeBB forums. Built on Mozilla's PDF.js, this plugin integrates a powerful PDF reading experience directly into your community.
 
-Fork this or copy it, and using your favourite text editor find and replace all instances of `nodebb-plugin-quickstart` with `nodebb-plugin-your-plugins-name`. Change the author's name in the LICENSE and package.json files.
+## 🚀 Features
 
-## Hello World
+- **Advanced Annotation Tools**: Highlight text, draw freehand, add text notes, and insert shapes (rectangles, circles, lines, arrows).
+- **Persistent Annotations**: Annotations are saved per page and persist across sessions (stored locally or via server implementation).
+- **Page Manipulation**: Rotate pages left/right to correct orientation.
+- **Reading Modes**: 
+  - **Sepia Mode**: Reduces eye strain during long reading sessions.
+  - **Dark Mode Support**: UI adapts to system themes.
+- **Navigation**:
+  - Sidebar with thumbnail navigation.
+  - Jump to page.
+  - Zoom controls (In, Out, Page Width).
+- **Responsive Design**: Mobile-friendly toolbar and sidebar behavior.
+- **Security**: Built-in security controls to manage PDF access.
 
-Really simple, just edit `public/lib/main.js` and paste in `console.log('hello world');`, and that's it!
+## 📦 Installation
 
-## Installation
+```bash
+npm install nodebb-plugin-secure-pdf
+```
 
-    npm install nodebb-plugin-quickstart
+## 🛠️ Usage
 
-## Screenshots
+1. **Upload PDF**: Upload a PDF file to a post.
+2. **View**: Click on the PDF attachment to open it in the Secure Viewer.
+3. **Annotate**: Use the toolbar to select tools (Pen, Highlighter, Text, Shapes).
 
-Don't forget to add screenshots!
+## ⌨️ Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| `H` | Toggle Highlighter |
+| `P` | Toggle Pen |
+| `T` | Toggle Text Tool |
+| `R` | Toggle Shapes |
+| `E` | Eraser |
+| `S` | Toggle Sidebar |
+| `M` | Toggle Reading Mode |
+| `Arrows` | Navigate Pages |
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+This project is licensed under the MIT License.

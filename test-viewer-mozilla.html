@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Viewer - Mozilla Official</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            background: #1a1a1a;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        /* Upload State */
+        #uploadState {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+        }
+
+        .upload-card {
+            width: 500px;
+            padding: 80px 60px;
+            background: #2a2a2a;
+            border: 2px dashed #444;
+            border-radius: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-card:hover {
+            border-color: #0066cc;
+            background: #333;
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .upload-icon {
+            font-size: 80px;
+            margin-bottom: 24px;
+        }
+
+        .upload-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 12px;
+        }
+
+        .upload-subtitle {
+            font-size: 16px;
+            color: #888;
+        }
+
+        /* Viewer State */
+        #viewerState {
+            display: none;
+            height: 100%;
+            flex-direction: column;
+        }
+
+        #viewerState.active {
+            display: flex;
+        }
+
+        /* Header */
+        .header {
+            height: 50px;
+            background: #2a2a2a;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        .header-title {
+            color: #fff;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .header-btn {
+            background: #0066cc;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .header-btn:hover {
+            background: #0055aa;
+        }
+
+        /* Iframe Container */
+        #pdfFrame {
+            flex: 1;
+            width: 100%;
+            border: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Upload State -->
+    <div id="uploadState">
+        <div class="upload-card" onclick="document.getElementById('fileInput').click()">
+            <div class="upload-icon">📄</div>
+            <h1 class="upload-title">Open PDF Document</h1>
+            <p class="upload-subtitle">Click to browse or drag and drop a PDF file</p>
+        </div>
+        <input type="file" id="fileInput" accept=".pdf" hidden>
+    </div>
+
+    <!-- Viewer State -->
+    <div id="viewerState">
+        <div class="header">
+            <span class="header-title" id="fileName">Document.pdf</span>
+            <button class="header-btn" onclick="openNewFile()">📁 Open Another</button>
+        </div>
+        <iframe id="pdfFrame"></iframe>
+    </div>
+
+    <script>
+        const uploadState = document.getElementById('uploadState');
+        const viewerState = document.getElementById('viewerState');
+        const pdfFrame = document.getElementById('pdfFrame');
+        const fileInput = document.getElementById('fileInput');
+        const fileName = document.getElementById('fileName');
+
+        // Mozilla's official PDF.js viewer URL
+        const PDFJS_VIEWER_URL = 'https://mozilla.github.io/pdf.js/web/viewer.html';
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Show viewer state
+            uploadState.classList.add('hidden');
+            viewerState.classList.add('active');
+            fileName.textContent = file.name;
+
+            // Create blob URL for the PDF
+            const blobUrl = URL.createObjectURL(file);
+
+            // Load in Mozilla's official viewer
+            pdfFrame.src = PDFJS_VIEWER_URL + '?file=' + encodeURIComponent(blobUrl);
+        });
+
+        function openNewFile() {
+            fileInput.value = '';
+            fileInput.click();
+        }
+
+        // Drag and drop
+        document.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            document.querySelector('.upload-card')?.style.setProperty('border-color', '#0066cc');
+        });
+
+        document.addEventListener('dragleave', (e) => {
+            document.querySelector('.upload-card')?.style.setProperty('border-color', '#444');
+        });
+
+        document.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file && file.type === 'application/pdf') {
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                fileInput.files = dt.files;
+                fileInput.dispatchEvent(new Event('change'));
+            }
+        });
+
+        console.log('Mozilla Official PDF.js Viewer Ready');
+    </script>
+</body>
+
+</html>

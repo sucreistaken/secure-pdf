@@ -1,32 +1,91 @@
 'use strict';
 
 /**
- * This file shows how client-side javascript can be included via a plugin.
- * If you check `plugin.json`, you'll see that this file is listed under "scripts".
- * That array tells NodeBB which files to bundle into the minified javascript
- * that is served to the end user.
- *
- * There are two (standard) ways to wait for when NodeBB is ready.
- * This one below executes when NodeBB reports it is ready...
- */
-
-(async () => {
-	const hooks = await app.require('hooks');
-
-	hooks.on('action:app.load', () => {
-		// called once when nbb has loaded
-	});
-
-	hooks.on('action:ajaxify.end', (/* data */) => {
-		// called everytime user navigates between pages including first load
-	});
-})();
-
-/**
- * ... and this one reports when the DOM is loaded (but NodeBB might not be fully ready yet).
- * For most cases, you'll want the one above.
+ * Secure PDF Viewer - Main Entry Point
+ * Automatically detects and converts PDF links to secure viewers
  */
 
 $(document).ready(function () {
-	// ...
+	initSecurePdfViewer();
 });
+
+$(window).on('action:topic.loaded action:posts.loaded', function () {
+	initSecurePdfViewer();
+});
+
+function initSecurePdfViewer() {
+	// Find all unprocessed PDF links
+	const pdfLinks = document.querySelectorAll('a[href$=".pdf"]:not(.spdf-processed), a[href*=".pdf?"]:not(.spdf-processed)');
+
+	pdfLinks.forEach(function (link) {
+		// Mark as processed
+		link.classList.add('spdf-processed');
+
+		const pdfUrl = link.href;
+		const containerId = 'spdf-' + Math.random().toString(36).substr(2, 9);
+
+		// Hide original link
+		link.style.display = 'none';
+
+		// Create viewer container
+		const container = document.createElement('div');
+		container.id = containerId;
+		container.className = 'spdf-viewer-wrapper';
+		link.parentNode.insertBefore(container, link.nextSibling);
+
+		// Check if mobile
+		const isMobile = window.innerWidth <= 768;
+
+		if (isMobile) {
+			// Mobile: Show button to open in fullscreen
+			container.innerHTML = `
+                <div class="spdf-mobile-trigger">
+                    <button class="spdf-mobile-btn" data-url="${pdfUrl}">
+                        <span class="spdf-mobile-icon">📄</span>
+                        <span class="spdf-mobile-text">PDF'i Görüntüle</span>
+                    </button>
+                </div>
+            `;
+
+			container.querySelector('.spdf-mobile-btn').addEventListener('click', function () {
+				openMobileViewer(pdfUrl);
+			});
+		} else {
+			// Desktop: Embedded viewer
+			require(['secure-pdf/viewer'], function (Viewer) {
+				Viewer.init('#' + containerId, {
+					pdfUrl: pdfUrl
+				});
+				Viewer.loadPDF(pdfUrl);
+			});
+		}
+	});
+}
+
+function openMobileViewer(pdfUrl) {
+	// Open fullscreen modal on mobile
+	const modal = document.createElement('div');
+	modal.className = 'spdf-mobile-modal';
+	modal.innerHTML = `
+        <div class="spdf-mobile-header">
+            <button class="spdf-mobile-close">✕</button>
+            <span>PDF Viewer</span>
+        </div>
+        <div class="spdf-mobile-content" id="spdf-mobile-viewer"></div>
+    `;
+
+	document.body.appendChild(modal);
+	document.body.style.overflow = 'hidden';
+
+	modal.querySelector('.spdf-mobile-close').addEventListener('click', function () {
+		modal.remove();
+		document.body.style.overflow = '';
+	});
+
+	require(['secure-pdf/viewer'], function (Viewer) {
+		Viewer.init('#spdf-mobile-viewer', {
+			pdfUrl: pdfUrl
+		});
+		Viewer.loadPDF(pdfUrl);
+	});
+}

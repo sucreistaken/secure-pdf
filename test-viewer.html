@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure PDF Viewer - Test</title>
+
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <!-- Fabric.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 300;
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* PDF Viewer Container */
+        .pdf-viewer-container {
+            background: #1e1e1e;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        /* ==================== FLOATING TOOLBAR ==================== */
+        .pdf-toolbar {
+            background: rgba(30, 30, 30, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 16px auto;
+            width: fit-content;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .toolbar-divider {
+            width: 1px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.15);
+            margin: 0 8px;
+        }
+
+        .tool-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s ease;
+            color: rgba(255, 255, 255, 0.7);
+            position: relative;
+        }
+
+        .tool-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        .tool-btn.active {
+            background: rgba(255, 204, 0, 0.2);
+            color: #ffcc00;
+        }
+
+        .tool-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        /* Tooltip */
+        .tool-btn::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .tool-btn:hover::after {
+            opacity: 1;
+        }
+
+        /* Color Picker Dropdown */
+        .color-picker-wrap {
+            position: relative;
+        }
+
+        .color-dropdown {
+            position: absolute;
+            top: 48px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30, 30, 30, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 12px;
+            padding: 10px;
+            display: none;
+            gap: 6px;
+            flex-wrap: wrap;
+            width: 140px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 100;
+        }
+
+        .color-picker-wrap:hover .color-dropdown {
+            display: flex;
+        }
+
+        .color-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .color-btn:hover {
+            transform: scale(1.2);
+            border-color: #fff;
+        }
+
+        .color-btn.active {
+            border-color: #fff;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        /* ==================== PDF SCROLL AREA ==================== */
+        .pdf-scroll-area {
+            height: 70vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: #2a2a2a;
+            padding: 20px;
+        }
+
+        .pdf-inner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* Page Wrapper */
+        .pdf-page-wrapper {
+            position: relative;
+            background: #fff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
+
+        .pdf-page-wrapper canvas.pdf-layer {
+            display: block;
+        }
+
+        .pdf-page-wrapper canvas.annotation-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: auto;
+        }
+
+        /* ==================== STATUS BAR ==================== */
+        .status-bar {
+            background: rgba(20, 20, 20, 0.95);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .page-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .page-input {
+            width: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 6px;
+            padding: 4px 8px;
+            color: #fff;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .zoom-btn {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .zoom-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* ==================== LOADING ==================== */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(30, 30, 30, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #ffcc00;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ==================== FILE INPUT ==================== */
+        .file-input-area {
+            padding: 40px;
+            text-align: center;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            margin: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-input-area:hover {
+            border-color: #ffcc00;
+            background: rgba(255, 204, 0, 0.05);
+        }
+
+        .file-input-area input {
+            display: none;
+        }
+
+        .file-input-area p {
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 10px;
+        }
+
+        /* Highlighter Colors */
+        .highlighter-yellow {
+            background: rgba(255, 235, 59, 0.5);
+        }
+
+        .highlighter-green {
+            background: rgba(76, 175, 80, 0.5);
+        }
+
+        .highlighter-blue {
+            background: rgba(33, 150, 243, 0.5);
+        }
+
+        .highlighter-pink {
+            background: rgba(233, 30, 99, 0.5);
+        }
+
+        .highlighter-purple {
+            background: rgba(156, 39, 176, 0.5);
+        }
+
+        .highlighter-orange {
+            background: rgba(255, 152, 0, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔒 Secure PDF Viewer - Test</h1>
+
+        <div class="pdf-viewer-container" id="pdfViewerContainer">
+            <!-- Toolbar -->
+            <div class="pdf-toolbar">
+                <!-- Highlighter -->
+                <div class="color-picker-wrap">
+                    <button class="tool-btn" id="highlighterBtn" data-tooltip="Highlighter (H)">
+                        🖍️
+                    </button>
+                    <div class="color-dropdown">
+                        <button class="color-btn active" style="background: rgba(255, 235, 59, 0.8)"
+                            data-color="rgba(255, 235, 59, 0.4)"></button>
+                        <button class="color-btn" style="background: rgba(76, 175, 80, 0.8)"
+                            data-color="rgba(76, 175, 80, 0.4)"></button>
+                        <button class="color-btn" style="background: rgba(33, 150, 243, 0.8)"
+                            data-color="rgba(33, 150, 243, 0.4)"></button>
+                        <button class="color-btn" style="background: rgba(233, 30, 99, 0.8)"
+                            data-color="rgba(233, 30, 99, 0.4)"></button>
+                        <button class="color-btn" style="background: rgba(156, 39, 176, 0.8)"
+                            data-color="rgba(156, 39, 176, 0.4)"></button>
+                        <button class="color-btn" style="background: rgba(255, 152, 0, 0.8)"
+                            data-color="rgba(255, 152, 0, 0.4)"></button>
+                    </div>
+                </div>
+
+                <!-- Pen -->
+                <div class="color-picker-wrap">
+                    <button class="tool-btn" id="penBtn" data-tooltip="Pen (P)">
+                        ✏️
+                    </button>
+                    <div class="color-dropdown">
+                        <button class="color-btn" style="background: #ff0000" data-color="#ff0000"></button>
+                        <button class="color-btn" style="background: #00ff00" data-color="#00ff00"></button>
+                        <button class="color-btn" style="background: #0000ff" data-color="#0000ff"></button>
+                        <button class="color-btn active" style="background: #000000" data-color="#000000"></button>
+                        <button class="color-btn" style="background: #ffffff" data-color="#ffffff"></button>
+                    </div>
+                </div>
+
+                <!-- Text -->
+                <button class="tool-btn" id="textBtn" data-tooltip="Text (T)">
+                    T
+                </button>
+
+                <div class="toolbar-divider"></div>
+
+                <!-- Undo/Redo -->
+                <button class="tool-btn" id="undoBtn" data-tooltip="Undo (Ctrl+Z)">
+                    ↩️
+                </button>
+                <button class="tool-btn" id="redoBtn" data-tooltip="Redo (Ctrl+Y)">
+                    ↪️
+                </button>
+
+                <div class="toolbar-divider"></div>
+
+                <!-- Clear -->
+                <button class="tool-btn" id="clearBtn" data-tooltip="Clear All">
+                    🗑️
+                </button>
+
+                <div class="toolbar-divider"></div>
+
+                <!-- Dark Mode -->
+                <button class="tool-btn" id="darkModeBtn" data-tooltip="Dark Mode (D)">
+                    🌙
+                </button>
+
+                <!-- Fullscreen -->
+                <button class="tool-btn" id="fullscreenBtn" data-tooltip="Fullscreen (F)">
+                    ⛶
+                </button>
+            </div>
+
+            <!-- File Input (for testing) -->
+            <div class="file-input-area" id="fileInputArea">
+                <input type="file" id="pdfFileInput" accept=".pdf">
+                <div style="font-size: 40px;">📄</div>
+                <p>PDF dosyası seçin veya sürükleyin</p>
+            </div>
+
+            <!-- PDF Display Area -->
+            <div class="pdf-scroll-area" id="pdfScrollArea" style="display: none;">
+                <div class="pdf-inner" id="pdfInner"></div>
+            </div>
+
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <div class="page-indicator">
+                    Sayfa <input type="number" class="page-input" id="pageInput" value="1" min="1"> / <span
+                        id="totalPages">-</span>
+                </div>
+                <div class="zoom-controls">
+                    <button class="zoom-btn" id="zoomOutBtn">−</button>
+                    <span id="zoomLevel">100%</span>
+                    <button class="zoom-btn" id="zoomInBtn">+</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        // State
+        let pdfDoc = null;
+        let currentScale = 1.0;
+        let currentTool = null; // 'highlighter' | 'pen' | 'text'
+        let currentColor = 'rgba(255, 235, 59, 0.4)';
+        let penColor = '#000000';
+        let fabricCanvases = {}; // pageNum -> fabric.Canvas
+
+        // DOM Elements
+        const fileInputArea = document.getElementById('fileInputArea');
+        const pdfFileInput = document.getElementById('pdfFileInput');
+        const pdfScrollArea = document.getElementById('pdfScrollArea');
+        const pdfInner = document.getElementById('pdfInner');
+        const totalPagesSpan = document.getElementById('totalPages');
+        const pageInput = document.getElementById('pageInput');
+        const zoomLevel = document.getElementById('zoomLevel');
+
+        // Tool Buttons
+        const highlighterBtn = document.getElementById('highlighterBtn');
+        const penBtn = document.getElementById('penBtn');
+        const textBtn = document.getElementById('textBtn');
+        const undoBtn = document.getElementById('undoBtn');
+        const redoBtn = document.getElementById('redoBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const darkModeBtn = document.getElementById('darkModeBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const zoomInBtn = document.getElementById('zoomInBtn');
+        const zoomOutBtn = document.getElementById('zoomOutBtn');
+
+        // File Input
+        fileInputArea.addEventListener('click', () => pdfFileInput.click());
+        pdfFileInput.addEventListener('change', handleFileSelect);
+
+        // Drag & Drop
+        fileInputArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileInputArea.style.borderColor = '#ffcc00';
+        });
+        fileInputArea.addEventListener('dragleave', () => {
+            fileInputArea.style.borderColor = 'rgba(255,255,255,0.2)';
+        });
+        fileInputArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileInputArea.style.borderColor = 'rgba(255,255,255,0.2)';
+            if (e.dataTransfer.files.length > 0) {
+                loadPDF(e.dataTransfer.files[0]);
+            }
+        });
+
+        function handleFileSelect(e) {
+            if (e.target.files.length > 0) {
+                loadPDF(e.target.files[0]);
+            }
+        }
+
+        async function loadPDF(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+            totalPagesSpan.textContent = pdfDoc.numPages;
+            pageInput.max = pdfDoc.numPages;
+
+            fileInputArea.style.display = 'none';
+            pdfScrollArea.style.display = 'block';
+
+            renderAllPages();
+        }
+
+        async function renderAllPages() {
+            pdfInner.innerHTML = '';
+            fabricCanvases = {};
+
+            for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+                await renderPage(pageNum);
+            }
+        }
+
+        async function renderPage(pageNum) {
+            const page = await pdfDoc.getPage(pageNum);
+            const viewport = page.getViewport({ scale: currentScale * 1.5 }); // Higher quality
+
+            // Page wrapper
+            const wrapper = document.createElement('div');
+            wrapper.className = 'pdf-page-wrapper';
+            wrapper.dataset.pageNum = pageNum;
+            wrapper.style.width = viewport.width + 'px';
+            wrapper.style.height = viewport.height + 'px';
+
+            // PDF Canvas
+            const pdfCanvas = document.createElement('canvas');
+            pdfCanvas.className = 'pdf-layer';
+            pdfCanvas.width = viewport.width;
+            pdfCanvas.height = viewport.height;
+            const ctx = pdfCanvas.getContext('2d');
+
+            await page.render({
+                canvasContext: ctx,
+                viewport: viewport
+            }).promise;
+
+            wrapper.appendChild(pdfCanvas);
+
+            // Fabric.js Annotation Canvas
+            const annotationCanvas = document.createElement('canvas');
+            annotationCanvas.id = `annotation-${pageNum}`;
+            annotationCanvas.width = viewport.width;
+            annotationCanvas.height = viewport.height;
+            annotationCanvas.style.width = viewport.width + 'px';
+            annotationCanvas.style.height = viewport.height + 'px';
+            wrapper.appendChild(annotationCanvas);
+
+            pdfInner.appendChild(wrapper);
+
+            // Initialize Fabric.js
+            const fabricCanvas = new fabric.Canvas(`annotation-${pageNum}`, {
+                isDrawingMode: false,
+                selection: true
+            });
+            fabricCanvases[pageNum] = fabricCanvas;
+
+            // Setup drawing
+            setupDrawingMode(fabricCanvas);
+        }
+
+        function setupDrawingMode(fabricCanvas) {
+            fabricCanvas.freeDrawingBrush = new fabric.PencilBrush(fabricCanvas);
+            fabricCanvas.freeDrawingBrush.width = 3;
+            fabricCanvas.freeDrawingBrush.color = penColor;
+        }
+
+        // Tool Selection
+        function setTool(tool) {
+            currentTool = currentTool === tool ? null : tool;
+
+            // Update button states
+            highlighterBtn.classList.toggle('active', currentTool === 'highlighter');
+            penBtn.classList.toggle('active', currentTool === 'pen');
+            textBtn.classList.toggle('active', currentTool === 'text');
+
+            // Update all fabric canvases
+            Object.values(fabricCanvases).forEach(fc => {
+                if (currentTool === 'highlighter') {
+                    fc.isDrawingMode = true;
+                    fc.freeDrawingBrush = new fabric.PencilBrush(fc);
+                    fc.freeDrawingBrush.width = 20;
+                    fc.freeDrawingBrush.color = currentColor;
+                } else if (currentTool === 'pen') {
+                    fc.isDrawingMode = true;
+                    fc.freeDrawingBrush = new fabric.PencilBrush(fc);
+                    fc.freeDrawingBrush.width = 3;
+                    fc.freeDrawingBrush.color = penColor;
+                } else if (currentTool === 'text') {
+                    fc.isDrawingMode = false;
+                } else {
+                    fc.isDrawingMode = false;
+                }
+            });
+        }
+
+        highlighterBtn.addEventListener('click', () => setTool('highlighter'));
+        penBtn.addEventListener('click', () => setTool('pen'));
+        textBtn.addEventListener('click', () => setTool('text'));
+
+        // Color Selection
+        document.querySelectorAll('.color-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const color = e.target.dataset.color;
+                const parent = e.target.closest('.color-picker-wrap');
+
+                // Update active state in this dropdown
+                parent.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+
+                // Determine if highlighter or pen
+                if (parent.contains(highlighterBtn)) {
+                    currentColor = color;
+                    if (currentTool === 'highlighter') {
+                        Object.values(fabricCanvases).forEach(fc => {
+                            fc.freeDrawingBrush.color = color;
+                        });
+                    }
+                } else {
+                    penColor = color;
+                    if (currentTool === 'pen') {
+                        Object.values(fabricCanvases).forEach(fc => {
+                            fc.freeDrawingBrush.color = color;
+                        });
+                    }
+                }
+            });
+        });
+
+        // Text tool - click to add text
+        pdfInner.addEventListener('click', (e) => {
+            if (currentTool !== 'text') return;
+
+            const wrapper = e.target.closest('.pdf-page-wrapper');
+            if (!wrapper) return;
+
+            const pageNum = parseInt(wrapper.dataset.pageNum);
+            const fc = fabricCanvases[pageNum];
+            if (!fc) return;
+
+            const rect = wrapper.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const text = new fabric.IText('Metin yazın...', {
+                left: x,
+                top: y,
+                fontSize: 16,
+                fill: '#000',
+                fontFamily: 'Arial'
+            });
+
+            fc.add(text);
+            fc.setActiveObject(text);
+            text.enterEditing();
+        });
+
+        // Undo
+        undoBtn.addEventListener('click', () => {
+            Object.values(fabricCanvases).forEach(fc => {
+                const objects = fc.getObjects();
+                if (objects.length > 0) {
+                    fc.remove(objects[objects.length - 1]);
+                }
+            });
+        });
+
+        // Clear
+        clearBtn.addEventListener('click', () => {
+            if (confirm('Tüm çizimleri silmek istediğinize emin misiniz?')) {
+                Object.values(fabricCanvases).forEach(fc => {
+                    fc.clear();
+                });
+            }
+        });
+
+        // Zoom
+        zoomInBtn.addEventListener('click', () => {
+            currentScale = Math.min(currentScale + 0.25, 3.0);
+            zoomLevel.textContent = Math.round(currentScale * 100) + '%';
+            renderAllPages();
+        });
+
+        zoomOutBtn.addEventListener('click', () => {
+            currentScale = Math.max(currentScale - 0.25, 0.5);
+            zoomLevel.textContent = Math.round(currentScale * 100) + '%';
+            renderAllPages();
+        });
+
+        // Fullscreen
+        fullscreenBtn.addEventListener('click', () => {
+            const container = document.getElementById('pdfViewerContainer');
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                container.requestFullscreen();
+            }
+        });
+
+        // Dark Mode
+        let isDarkMode = true;
+        darkModeBtn.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            document.body.style.background = isDarkMode
+                ? 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)'
+                : 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%)';
+            pdfScrollArea.style.background = isDarkMode ? '#2a2a2a' : '#f0f0f0';
+        });
+
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'h' || e.key === 'H') setTool('highlighter');
+            if (e.key === 'p' || e.key === 'P') setTool('pen');
+            if (e.key === 't' || e.key === 'T') setTool('text');
+            if (e.key === 'd' || e.key === 'D') darkModeBtn.click();
+            if (e.key === 'f' || e.key === 'F') fullscreenBtn.click();
+            if (e.ctrlKey && e.key === 'z') undoBtn.click();
+        });
+
+        console.log('🔒 Secure PDF Viewer Test Ready');
+    </script>
+</body>
+
+</html>

@@ -1,6 +1,9 @@
 {
-	"id": "nodebb-plugin-quickstart",
-	"url": "https://github.com/NodeBB/nodebb-plugin-quickstart",
+	"id": "nodebb-plugin-secure-pdf",
+	"name": "Secure PDF Viewer",
+	"description": "Security-focused PDF viewer with annotation tools for students. Features highlighter, pen, text annotations, and download protection.",
+	"version": "1.0.0",
+	"url": "https://github.com/username/nodebb-plugin-secure-pdf",
 	"library": "./library.js",
 	"hooks": [
 		{ "hook": "static:app.load", "method": "init" },
@@ -11,7 +14,7 @@
 		"static": "./static"
 	},
 	"scss": [
-		"scss/quickstart.scss"
+		"scss/viewer.scss"
 	],
 	"scripts": [
 		"public/lib/main.js"
@@ -20,8 +23,7 @@
 		"public/lib/acp-main.js"
 	],
 	"modules": {
-		"../client/quickstart.js": "./public/lib/quickstart.js",
-		"../admin/plugins/quickstart.js": "./public/lib/admin.js"
+		"../client/secure-pdf.js": "./public/lib/viewer.js"
 	},
 	"templates": "templates"
 }

@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html dir="ltr" mozdisallowselectionprint>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>PDF Viewer - Professional</title>
+
+    <!-- PDF.js Official Viewer CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf_viewer.min.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #404040;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        /* Modern Dark Toolbar */
+        #toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: linear-gradient(180deg, #3a3a3a 0%, #2d2d2d 100%);
+            border-bottom: 1px solid #1a1a1a;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 12px;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .toolbar-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toolbar-divider {
+            width: 1px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 0 8px;
+        }
+
+        .toolbar-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: transparent;
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+            font-size: 20px;
+        }
+
+        .toolbar-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .toolbar-btn:active {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(0.95);
+        }
+
+        .toolbar-btn.active {
+            background: #0066cc;
+        }
+
+        .toolbar-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Page Navigation */
+        #pageNumber {
+            width: 50px;
+            height: 32px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            font-size: 14px;
+        }
+
+        #numPages {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+        }
+
+        /* Zoom Controls */
+        #zoomSelect {
+            height: 32px;
+            padding: 0 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* Title */
+        #documentTitle {
+            flex: 1;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: center;
+        }
+
+        /* Viewer Container */
+        #viewerContainer {
+            position: fixed;
+            top: 56px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow: auto;
+            background: #525659;
+        }
+
+        #viewer {
+            margin: 0 auto;
+        }
+
+        .pdfViewer .page {
+            margin: 16px auto;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            border-radius: 2px;
+        }
+
+        /* Upload State */
+        #uploadArea {
+            position: fixed;
+            top: 56px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #404040;
+        }
+
+        .upload-card {
+            width: 480px;
+            padding: 60px;
+            background: #2d2d2d;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-card:hover {
+            border-color: #0066cc;
+            background: #333;
+            transform: translateY(-4px);
+        }
+
+        .upload-icon {
+            font-size: 72px;
+            color: #0066cc;
+            margin-bottom: 20px;
+        }
+
+        .upload-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #fff;
+            margin: 0 0 8px 0;
+        }
+
+        .upload-subtitle {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.5);
+            margin: 0;
+        }
+
+        .upload-card.hidden {
+            display: none;
+        }
+
+        /* Loading Spinner */
+        .loading {
+            display: none;
+            color: #fff;
+            font-size: 18px;
+        }
+
+        /* Annotation Toolbar */
+        #annotationBar {
+            position: fixed;
+            top: 56px;
+            left: 0;
+            right: 0;
+            height: 44px;
+            background: #2d2d2d;
+            border-bottom: 1px solid #1a1a1a;
+            display: none;
+            align-items: center;
+            padding: 0 16px;
+            gap: 8px;
+            z-index: 999;
+        }
+
+        #annotationBar.visible {
+            display: flex;
+        }
+
+        .anno-btn {
+            height: 32px;
+            padding: 0 12px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            transition: all 0.15s;
+        }
+
+        .anno-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .anno-btn.active {
+            background: #0066cc;
+        }
+
+        .anno-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Color Swatches */
+        .color-swatch {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.15);
+        }
+
+        .color-swatch.active {
+            border-color: #fff;
+        }
+
+        /* SVG Drawing Layer */
+        .annotation-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .annotation-layer.active {
+            pointer-events: auto;
+            cursor: crosshair;
+        }
+
+        .annotation-layer path {
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Main Toolbar -->
+    <div id="toolbar">
+        <div class="toolbar-section">
+            <button class="toolbar-btn" id="openFile" title="Open File">📁</button>
+        </div>
+
+        <div class="toolbar-divider"></div>
+
+        <div class="toolbar-section">
+            <button class="toolbar-btn" id="zoomOut" title="Zoom Out">➖</button>
+            <select id="zoomSelect" title="Zoom">
+                <option value="0.5">50%</option>
+                <option value="0.75">75%</option>
+                <option value="1" selected>100%</option>
+                <option value="1.25">125%</option>
+                <option value="1.5">150%</option>
+                <option value="2">200%</option>
+                <option value="auto">Auto</option>
+                <option value="page-width">Page Width</option>
+            </select>
+            <button class="toolbar-btn" id="zoomIn" title="Zoom In">➕</button>
+        </div>
+
+        <div class="toolbar-divider"></div>
+
+        <div class="toolbar-section">
+            <button class="toolbar-btn" id="prevPage" title="Previous Page">◀️</button>
+            <input type="number" id="pageNumber" value="1" min="1">
+            <span id="numPages">/ --</span>
+            <button class="toolbar-btn" id="nextPage" title="Next Page">▶️</button>
+        </div>
+
+        <div id="documentTitle">PDF Viewer</div>
+
+        <div class="toolbar-section">
+            <button class="toolbar-btn" id="toggleAnnotate" title="Annotate">✏️</button>
+            <button class="toolbar-btn" id="fullscreen" title="Fullscreen">⛶</button>
+        </div>
+
+        <input type="file" id="fileInput" accept=".pdf" hidden>
+    </div>
+
+    <!-- Annotation Toolbar -->
+    <div id="annotationBar">
+        <button class="anno-btn active" id="annoPen" title="Pen">🖊️ Pen</button>
+        <button class="anno-btn" id="annoHighlight" title="Highlight">🖍️ Highlight</button>
+        <button class="anno-btn" id="annoEraser" title="Eraser">🧹 Eraser</button>
+        <div class="toolbar-divider"></div>
+        <div class="color-swatch active" style="background:#ff3b30" data-color="#ff3b30"></div>
+        <div class="color-swatch" style="background:#ff9500" data-color="#ff9500"></div>
+        <div class="color-swatch" style="background:#ffcc00" data-color="#ffcc00"></div>
+        <div class="color-swatch" style="background:#34c759" data-color="#34c759"></div>
+        <div class="color-swatch" style="background:#007aff" data-color="#007aff"></div>
+        <div class="color-swatch" style="background:#af52de" data-color="#af52de"></div>
+        <div class="color-swatch" style="background:#000000; border: 1px solid #555;" data-color="#000000"></div>
+        <div class="toolbar-divider"></div>
+        <button class="anno-btn" id="annoUndo" title="Undo">↩️ Undo</button>
+        <button class="anno-btn" id="annoClear" title="Clear All">🗑️ Clear</button>
+    </div>
+
+    <!-- Upload Area -->
+    <div id="uploadArea">
+        <div class="upload-card" onclick="document.getElementById('fileInput').click()">
+            <div class="upload-icon">📄</div>
+            <h2 class="upload-title">Open PDF Document</h2>
+            <p class="upload-subtitle">Click to browse or drag and drop</p>
+        </div>
+        <div class="loading">Loading document...</div>
+    </div>
+
+    <!-- PDF Viewer -->
+    <div id="viewerContainer" style="display:none;">
+        <div id="viewer" class="pdfViewer"></div>
+    </div>
+
+    <!-- PDF.js Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf_viewer.min.js"></script>
+
+    <script>
+        // PDF.js Worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.js';
+
+        // State
+        let pdfDoc = null;
+        let pdfViewer = null;
+        let currentScale = 1;
+        let annotationMode = false;
+        let currentTool = 'pen';
+        let currentColor = '#ff3b30';
+        let isDrawing = false;
+        let currentPath = null;
+
+        // Initialize PDF Viewer
+        const container = document.getElementById('viewerContainer');
+        const eventBus = new pdfjsViewer.EventBus();
+        const linkService = new pdfjsViewer.PDFLinkService({ eventBus });
+
+        pdfViewer = new pdfjsViewer.PDFViewer({
+            container,
+            eventBus,
+            linkService,
+            removePageBorders: true,
+            textLayerMode: 2,
+            annotationMode: 2
+        });
+        linkService.setViewer(pdfViewer);
+
+        // Event Listeners
+        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+        document.getElementById('openFile').addEventListener('click', () => document.getElementById('fileInput').click());
+        document.getElementById('prevPage').addEventListener('click', () => pdfViewer.previousPage());
+        document.getElementById('nextPage').addEventListener('click', () => pdfViewer.nextPage());
+        document.getElementById('zoomIn').addEventListener('click', () => setZoom(currentScale + 0.25));
+        document.getElementById('zoomOut').addEventListener('click', () => setZoom(currentScale - 0.25));
+        document.getElementById('zoomSelect').addEventListener('change', handleZoomChange);
+        document.getElementById('pageNumber').addEventListener('change', handlePageInput);
+        document.getElementById('fullscreen').addEventListener('click', toggleFullscreen);
+        document.getElementById('toggleAnnotate').addEventListener('click', toggleAnnotationMode);
+
+        // Annotation Tools
+        document.getElementById('annoPen').addEventListener('click', () => setTool('pen'));
+        document.getElementById('annoHighlight').addEventListener('click', () => setTool('highlight'));
+        document.getElementById('annoEraser').addEventListener('click', () => setTool('eraser'));
+        document.getElementById('annoUndo').addEventListener('click', undoLastAnnotation);
+        document.getElementById('annoClear').addEventListener('click', clearAllAnnotations);
+
+        // Color Swatches
+        document.querySelectorAll('.color-swatch').forEach(swatch => {
+            swatch.addEventListener('click', () => {
+                document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+                swatch.classList.add('active');
+                currentColor = swatch.dataset.color;
+            });
+        });
+
+        // PDF Viewer Events
+        eventBus.on('pagesinit', () => {
+            pdfViewer.currentScaleValue = 'auto';
+            currentScale = pdfViewer.currentScale;
+            document.getElementById('numPages').textContent = `/ ${pdfViewer.pagesCount}`;
+        });
+
+        eventBus.on('pagechanging', (evt) => {
+            document.getElementById('pageNumber').value = evt.pageNumber;
+        });
+
+        eventBus.on('scalechanging', (evt) => {
+            currentScale = evt.scale;
+            updateZoomSelect();
+        });
+
+        eventBus.on('pagerendered', (evt) => {
+            if (annotationMode) {
+                injectAnnotationLayer(evt.pageNumber);
+            }
+        });
+
+        // File Handling
+        async function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            document.querySelector('.upload-card').classList.add('hidden');
+            document.querySelector('.loading').style.display = 'block';
+
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                pdfDoc = await pdfjsLib.getDocument(arrayBuffer).promise;
+
+                document.getElementById('uploadArea').style.display = 'none';
+                container.style.display = 'block';
+                document.getElementById('documentTitle').textContent = file.name;
+
+                pdfViewer.setDocument(pdfDoc);
+                linkService.setDocument(pdfDoc);
+
+                console.log('PDF loaded successfully');
+            } catch (error) {
+                console.error('Error loading PDF:', error);
+                alert('Error loading PDF: ' + error.message);
+            }
+        }
+
+        function setZoom(newScale) {
+            if (newScale < 0.25 || newScale > 4) return;
+            pdfViewer.currentScale = newScale;
+        }
+
+        function handleZoomChange(e) {
+            const value = e.target.value;
+            if (value === 'auto') {
+                pdfViewer.currentScaleValue = 'auto';
+            } else if (value === 'page-width') {
+                pdfViewer.currentScaleValue = 'page-width';
+            } else {
+                pdfViewer.currentScale = parseFloat(value);
+            }
+        }
+
+        function updateZoomSelect() {
+            const select = document.getElementById('zoomSelect');
+            const rounded = Math.round(currentScale * 100) / 100;
+            const option = Array.from(select.options).find(o => parseFloat(o.value) === rounded);
+            if (option) {
+                select.value = option.value;
+            }
+        }
+
+        function handlePageInput(e) {
+            const pageNum = parseInt(e.target.value);
+            if (pageNum >= 1 && pageNum <= pdfViewer.pagesCount) {
+                pdfViewer.currentPageNumber = pageNum;
+            }
+        }
+
+        function toggleFullscreen() {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                document.body.requestFullscreen();
+            }
+        }
+
+        // Annotation Functions
+        function toggleAnnotationMode() {
+            annotationMode = !annotationMode;
+            document.getElementById('toggleAnnotate').classList.toggle('active', annotationMode);
+            document.getElementById('annotationBar').classList.toggle('visible', annotationMode);
+
+            // Adjust viewer position
+            container.style.top = annotationMode ? '100px' : '56px';
+
+            // Inject layers to all visible pages
+            if (annotationMode) {
+                for (let i = 1; i <= pdfViewer.pagesCount; i++) {
+                    injectAnnotationLayer(i);
+                }
+            } else {
+                document.querySelectorAll('.annotation-layer').forEach(el => {
+                    el.classList.remove('active');
+                });
+            }
+        }
+
+        function setTool(tool) {
+            currentTool = tool;
+            document.querySelectorAll('.anno-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('anno' + tool.charAt(0).toUpperCase() + tool.slice(1)).classList.add('active');
+        }
+
+        function injectAnnotationLayer(pageNum) {
+            const pageView = pdfViewer.getPageView(pageNum - 1);
+            if (!pageView || !pageView.div) return;
+
+            // Check if already exists
+            if (pageView.div.querySelector('.annotation-layer')) {
+                pageView.div.querySelector('.annotation-layer').classList.toggle('active', annotationMode);
+                return;
+            }
+
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('class', 'annotation-layer' + (annotationMode ? ' active' : ''));
+            svg.style.width = '100%';
+            svg.style.height = '100%';
+            svg.dataset.page = pageNum;
+
+            pageView.div.appendChild(svg);
+
+            // Drawing Events
+            svg.addEventListener('mousedown', startDrawing);
+            svg.addEventListener('mousemove', draw);
+            svg.addEventListener('mouseup', stopDrawing);
+            svg.addEventListener('mouseleave', stopDrawing);
+        }
+
+        function startDrawing(e) {
+            if (!annotationMode) return;
+
+            isDrawing = true;
+            const svg = e.currentTarget;
+            const rect = svg.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            if (currentTool === 'eraser') {
+                // Eraser mode - find and remove paths near click
+                eraseAt(svg, x, y);
+                return;
+            }
+
+            currentPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            currentPath.setAttribute('stroke', currentColor);
+            currentPath.setAttribute('stroke-width', currentTool === 'highlight' ? '20' : '2');
+            currentPath.setAttribute('stroke-opacity', currentTool === 'highlight' ? '0.4' : '1');
+            currentPath.setAttribute('d', `M${x},${y}`);
+            svg.appendChild(currentPath);
+        }
+
+        function draw(e) {
+            if (!isDrawing || !currentPath) return;
+
+            const svg = e.currentTarget;
+
+            if (currentTool === 'eraser') {
+                const rect = svg.getBoundingClientRect();
+                eraseAt(svg, e.clientX - rect.left, e.clientY - rect.top);
+                return;
+            }
+
+            const rect = svg.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const d = currentPath.getAttribute('d');
+            currentPath.setAttribute('d', d + ` L${x},${y}`);
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            currentPath = null;
+        }
+
+        function eraseAt(svg, x, y) {
+            const paths = svg.querySelectorAll('path');
+            paths.forEach(path => {
+                const bbox = path.getBBox();
+                if (x >= bbox.x - 10 && x <= bbox.x + bbox.width + 10 &&
+                    y >= bbox.y - 10 && y <= bbox.y + bbox.height + 10) {
+                    path.remove();
+                }
+            });
+        }
+
+        function undoLastAnnotation() {
+            const activeLayer = document.querySelector('.annotation-layer.active');
+            if (activeLayer) {
+                const lastPath = activeLayer.lastElementChild;
+                if (lastPath) lastPath.remove();
+            }
+        }
+
+        function clearAllAnnotations() {
+            if (confirm('Clear all annotations on this page?')) {
+                const activeLayer = document.querySelector('.annotation-layer.active');
+                if (activeLayer) {
+                    activeLayer.innerHTML = '';
+                }
+            }
+        }
+
+        // Drag and Drop
+        document.getElementById('uploadArea').addEventListener('dragover', (e) => {
+            e.preventDefault();
+            document.querySelector('.upload-card').style.borderColor = '#0066cc';
+        });
+
+        document.getElementById('uploadArea').addEventListener('dragleave', () => {
+            document.querySelector('.upload-card').style.borderColor = '';
+        });
+
+        document.getElementById('uploadArea').addEventListener('drop', (e) => {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file && file.type === 'application/pdf') {
+                const input = document.getElementById('fileInput');
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                input.files = dt.files;
+                input.dispatchEvent(new Event('change'));
+            }
+        });
+
+        console.log('Professional PDF Viewer loaded');
+    </script>
+</body>
+
+</html>

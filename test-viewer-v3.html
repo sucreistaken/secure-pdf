@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure PDF Viewer - Optimized (Virtual Scrolling)</title>
+
+    <!-- PDF.js Core -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <!-- PDF.js Viewer Components -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf_viewer.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf_viewer.min.js"></script>
+
+    <!-- pdf-annotate.js -->
+    <script src="https://cdn.jsdelivr.net/npm/pdf-annotate.js@1.0.1/dist/pdf-annotate.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1a1a1a;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: #eee;
+            overflow: hidden;
+            /* Prevent body scroll, viewer handles it */
+        }
+
+        /* Toolbar */
+        .toolbar {
+            height: 50px;
+            background: #2a2a2a;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 15px;
+            z-index: 100;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .tool-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tool-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .tool-btn.active {
+            background: #ffcc00;
+            color: #000;
+        }
+
+        .spacer {
+            flex: 1;
+        }
+
+        /* Main Layout */
+        .main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: #222;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            gap: 15px;
+            overflow-y: auto;
+        }
+
+        .annotation-tools {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .color-swatch {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+        }
+
+        .color-swatch.active {
+            border-color: #fff;
+            transform: scale(1.1);
+        }
+
+        /* PDF Viewer Container (Required for Virtual Scrolling) */
+        #viewerContainer {
+            flex: 1;
+            position: absolute;
+            top: 0;
+            left: 250px;
+            /* Width of sidebar */
+            right: 0;
+            bottom: 0;
+            overflow: auto;
+            background-color: #1a1a1a;
+        }
+
+        /* The actual viewer div managed by PDF.js */
+        #viewer {
+            position: absolute;
+            width: 100%;
+        }
+
+        /* Page Styling Overrides for Dark Mode */
+        .pdfViewer .page {
+            margin: 10px auto;
+            border: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        /* SVG Annotation Layer - Needs to match PDF.js page size */
+        .annotation-layer-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            /* Let clicks pass through unless drawing */
+            z-index: 2;
+        }
+
+        .drawing-mode .annotation-layer-svg {
+            pointer-events: auto;
+            /* Catch clicks when drawing */
+            cursor: crosshair;
+        }
+
+        /* File Upload Overlay */
+        #file-upload-overlay {
+            position: absolute;
+            top: 0;
+            left: 250px;
+            right: 0;
+            bottom: 0;
+            background: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+
+        .upload-box {
+            border: 2px dashed #444;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .upload-box:hover {
+            border-color: #ffcc00;
+            background: rgba(255, 204, 0, 0.05);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Top Toolbar -->
+    <div class="toolbar">
+        <span style="font-weight:bold; color:#ffcc00">⚡ Secure PDF V3</span>
+        <div style="width: 1px; height: 20px; background: #444; margin: 0 10px;"></div>
+
+        <button class="tool-btn" id="prevBtn">‹ Prev</button>
+        <span id="pageInfo">Page <span id="pageNumber">--</span> / <span id="numPages">--</span></span>
+        <button class="tool-btn" id="nextBtn">Next ›</button>
+
+        <div class="spacer"></div>
+
+        <button class="tool-btn" id="zoomOut">-</button>
+        <span id="zoomLevel">Auto</span>
+        <button class="tool-btn" id="zoomIn">+</button>
+
+        <div style="width: 1px; height: 20px; background: #444; margin: 0 10px;"></div>
+        <button class="tool-btn" id="fullscreenBtn">⛶</button>
+    </div>
+
+    <div class="main-content">
+        <!-- Annotation Sidebar -->
+        <div class="sidebar">
+            <div style="font-size: 12px; font-weight: bold; text-transform: uppercase; color: #888;">Tools</div>
+            <div class="annotation-tools">
+                <button class="tool-btn active" data-tool="cursor">👆 Select</button>
+                <button class="tool-btn" data-tool="pen">✏️ Pen</button>
+                <button class="tool-btn" data-tool="highlight">🖍️ Highlight</button>
+                <button class="tool-btn" data-tool="text">T Text</button>
+                <button class="tool-btn" data-tool="rectangle">⬜ Box</button>
+                <button class="tool-btn" data-tool="eraser">🧹 Eraser</button>
+            </div>
+
+            <div style="font-size: 12px; font-weight: bold; text-transform: uppercase; color: #888; margin-top: 10px;">
+                Color</div>
+            <div class="color-picker">
+                <div class="color-swatch active" style="background:#ffeb3b" data-color="#ffeb3b"></div>
+                <div class="color-swatch" style="background:#4caf50" data-color="#4caf50"></div>
+                <div class="color-swatch" style="background:#2196f3" data-color="#2196f3"></div>
+                <div class="color-swatch" style="background:#f44336" data-color="#f44336"></div>
+                <div class="color-swatch" style="background:#ffffff" data-color="#ffffff"></div>
+            </div>
+
+            <div style="font-size: 12px; font-weight: bold; text-transform: uppercase; color: #888; margin-top: 10px;">
+                Size</div>
+            <input type="range" id="sizeSlider" min="1" max="20" value="3" style="width:100%">
+
+            <div style="margin-top:auto">
+                <button class="tool-btn" style="width:100%" id="clearAnnotationsBtn">🗑️ Clear All</button>
+            </div>
+        </div>
+
+        <!-- PDF Viewer Container (Virtual Scrolling Context) -->
+        <div id="viewerContainer">
+            <div id="viewer" class="pdfViewer"></div>
+        </div>
+
+        <!-- File Upload Screen -->
+        <div id="file-upload-overlay">
+            <div class="upload-box" id="uploadBox">
+                <div style="font-size: 40px; margin-bottom: 10px;">📄</div>
+                <div>Select PDF File</div>
+                <input type="file" id="fileInput" accept=".pdf" style="display:none">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // PDF.js Worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        // --- PDF Viewer Application Logic ---
+        const container = document.getElementById("viewerContainer");
+        const eventBus = new pdfjsViewer.EventBus();
+
+        // Initialize PDFViewer (Handles virtual scrolling automatically)
+        const pdfViewer = new pdfjsViewer.PDFViewer({
+            container: container,
+            eventBus: eventBus,
+            textLayerMode: 0, // Disable text layer for better performance if needed, 1/2 enables it
+            removePageBorders: true,
+        });
+
+        // Initialize Link Service (for clickable links in PDF)
+        const pdfLinkService = new pdfjsViewer.PDFLinkService({
+            eventBus: eventBus,
+        });
+        pdfViewer.linkService = pdfLinkService;
+
+        // UI Refs
+        const uploadBox = document.getElementById('uploadBox');
+        const fileInput = document.getElementById('fileInput');
+        const uploadOverlay = document.getElementById('file-upload-overlay');
+
+        // --- Event Bus Listeners ---
+        eventBus.on("pagesinit", () => {
+            // Document loaded, set default zoom
+            pdfViewer.currentScaleValue = "auto";
+            document.getElementById("numPages").textContent = pdfViewer.pagesCount;
+            document.getElementById("zoomLevel").textContent = Math.round(pdfViewer.currentScale * 100) + "%";
+
+            // Initialize annotation layers for existing pages
+            // PDFViewer creates page divs dynamically, we need to inject SVG layers
+            // But pdf-annotate.js usually works by creating its own layers.
+            // Simplified approach: Wait for pages to render, then inject.
+        });
+
+        eventBus.on("pagechanging", (evt) => {
+            const page = evt.pageNumber;
+            document.getElementById("pageNumber").textContent = page;
+        });
+
+        eventBus.on("scalechanging", (evt) => {
+            document.getElementById("zoomLevel").textContent = Math.round(evt.scale * 100) + "%";
+        });
+
+        // --- File Loading ---
+        uploadBox.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (evt) {
+                const typedarray = new Uint8Array(evt.target.result);
+
+                // Load UI
+                uploadOverlay.style.display = 'none';
+
+                // Load PDF
+                pdfjsLib.getDocument(typedarray).promise.then(function (pdfDoc) {
+                    pdfViewer.setDocument(pdfDoc);
+                    pdfLinkService.setDocument(pdfDoc, null);
+                });
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        // --- Toolbar Controls ---
+        document.getElementById('zoomIn').onclick = () => pdfViewer.currentScale += 0.1;
+        document.getElementById('zoomOut').onclick = () => pdfViewer.currentScale -= 0.1;
+        document.getElementById('nextBtn').onclick = () => pdfViewer.nextPage();
+        document.getElementById('prevBtn').onclick = () => pdfViewer.previousPage();
+        document.getElementById('fullscreenBtn').onclick = () => {
+            if (!document.fullscreenElement) document.body.requestFullscreen();
+            else document.exitFullscreen();
+        };
+
+        // --- Minimal Annotation Implementation for this Demo ---
+        // Note: Full integration with PDFViewer's virtual scrolling requires checking
+        // when a page view is created and appending the SVG layer.
+
+        // This acts as a proof-of-concept for the PERFORMANCE part first.
+        // The user was complaining about "computer exploding" - PDFViewer solves this.
+        // We will confirm performance first, then wire up the annotations perfectly.
+
+        console.log("⚡ Secure PDF V3 Loaded - Waiting for file...");
+    </script>
+</body>
+
+</html>
