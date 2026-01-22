@@ -561,6 +561,251 @@
             stroke-linejoin: round;
         }
 
+        /* Select tool cursor */
+        .annotationLayer.select-mode {
+            cursor: default;
+        }
+
+        .annotationLayer.select-mode path,
+        .annotationLayer.select-mode rect,
+        .annotationLayer.select-mode ellipse,
+        .annotationLayer.select-mode line,
+        .annotationLayer.select-mode text {
+            cursor: grab;
+            pointer-events: all;
+            transition: transform 0.1s ease, opacity 0.1s ease;
+        }
+
+        /* Invisible hit area for easier selection */
+        .annotationLayer.select-mode path,
+        .annotationLayer.select-mode line {
+            stroke-linecap: round;
+        }
+
+        .annotationLayer.select-mode path:hover,
+        .annotationLayer.select-mode rect:hover,
+        .annotationLayer.select-mode ellipse:hover,
+        .annotationLayer.select-mode line:hover,
+        .annotationLayer.select-mode text:hover {
+            opacity: 0.8;
+            cursor: grab;
+        }
+
+        /* Selected annotation element - use filter for SVG compatibility */
+        .annotation-selected {
+            filter: drop-shadow(0 0 4px #0078d4) drop-shadow(0 0 8px rgba(0, 120, 212, 0.6)) !important;
+            opacity: 1 !important;
+        }
+
+        /* Touch feedback */
+        .annotation-dragging {
+            opacity: 0.6;
+            cursor: grabbing !important;
+            filter: drop-shadow(0 4px 12px rgba(0, 120, 212, 0.5));
+        }
+
+        /* Tablet/Touch optimizations for select mode */
+        @media (pointer: coarse),
+        (max-width: 1024px) {
+
+            .annotationLayer.select-mode path,
+            .annotationLayer.select-mode rect,
+            .annotationLayer.select-mode ellipse,
+            .annotationLayer.select-mode line,
+            .annotationLayer.select-mode text {
+                /* Ensure touch-friendly interaction */
+                cursor: pointer;
+            }
+
+            /* Bigger toolbar buttons for touch */
+            .toolbarBtn {
+                width: 44px;
+                height: 44px;
+                min-width: 44px;
+            }
+        }
+
+        /* Touch selection ring animation */
+        @keyframes selectionPulse {
+            0% {
+                outline-color: rgba(0, 120, 212, 1);
+            }
+
+            50% {
+                outline-color: rgba(0, 120, 212, 0.5);
+            }
+
+            100% {
+                outline-color: rgba(0, 120, 212, 1);
+            }
+        }
+
+        .annotation-selected.just-selected {
+            animation: selectionPulse 0.6s ease-out;
+        }
+
+        /* Move handle for touch devices */
+        .annotation-move-handle {
+            position: absolute;
+            width: 36px;
+            height: 36px;
+            background: rgba(0, 120, 212, 0.9);
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            cursor: grab;
+            z-index: 100;
+            touch-action: none;
+        }
+
+        .annotation-move-handle svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+
+        @media (pointer: coarse) {
+            .annotation-move-handle {
+                display: flex;
+            }
+        }
+
+        /* Ghost element while dragging */
+        .annotation-ghost {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* Selection toolbar for touch - action buttons */
+        .selection-toolbar {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: linear-gradient(135deg, #363636 0%, #2d2d2d 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            z-index: 2000;
+            opacity: 0;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+            pointer-events: none;
+        }
+
+        .selection-toolbar.visible {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .selection-toolbar::before {
+            content: 'Seçili Öğe';
+            position: absolute;
+            top: -28px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .selection-toolbar button {
+            width: 52px;
+            height: 52px;
+            border: none;
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.15s ease;
+            position: relative;
+        }
+
+        .selection-toolbar button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .selection-toolbar button:active {
+            transform: translateY(0);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .selection-toolbar button.delete {
+            background: rgba(196, 43, 28, 0.8);
+        }
+
+        .selection-toolbar button.delete:hover {
+            background: #e03e2f;
+            transform: translateY(-2px);
+        }
+
+        .selection-toolbar button svg {
+            width: 22px;
+            height: 22px;
+            fill: currentColor;
+        }
+
+        .selection-toolbar button span {
+            font-size: 9px;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        /* Toast notification for copy/paste */
+        .toast-notification {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #323232;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 3000;
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 1.7s forwards;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        @keyframes toastOut {
+            from {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+        }
+
         /* Text Selection Highlight */
         .textHighlight {
             position: absolute;
@@ -880,13 +1125,18 @@
                 </div>
             </div>
 
-            <button class="toolbarBtn" id="eraserBtn" title="Silgi">
+            <button class="toolbarBtn" id="eraserBtn" data-tooltip="Silgi (E)">
                 <svg viewBox="0 0 24 24">
                     <path
                         d="M16.24 3.56l4.95 4.94c.78.79.78 2.05 0 2.84L12 20.53a4.008 4.008 0 01-5.66 0L2.81 17c-.78-.79-.78-2.05 0-2.84l10.6-10.6c.79-.78 2.05-.78 2.83 0zM4.22 15.58l3.54 3.53c.78.79 2.04.79 2.83 0l3.53-3.53-4.95-4.95-4.95 4.95z" />
                 </svg>
             </button>
-            <button class="toolbarBtn" id="textBtn" title="Metin Ekle">
+            <button class="toolbarBtn" id="selectBtn" data-tooltip="Seç/Taşı (V)">
+                <svg viewBox="0 0 24 24">
+                    <path d="M7 2l12 11.2-5.8.5 3.3 7.3-2.2 1-3.2-7.4L7 18.5V2z" />
+                </svg>
+            </button>
+            <button class="toolbarBtn" id="textBtn" data-tooltip="Metin Ekle (T)">
                 <svg viewBox="0 0 24 24">
                     <path d="M5 4v3h5.5v12h3V7H19V4H5z" />
                 </svg>
@@ -1207,6 +1457,13 @@
                     annotationLayer.style.transform = `rotate(${newRotation}deg)`;
                     annotationLayer.style.transformOrigin = 'center center';
                 }
+
+                // Also rotate text highlight container
+                const textHighlightContainer = pageView.div.querySelector('.textHighlightContainer');
+                if (textHighlightContainer) {
+                    textHighlightContainer.style.transform = `rotate(${newRotation}deg)`;
+                    textHighlightContainer.style.transformOrigin = 'center center';
+                }
             }
         }
 
@@ -1332,6 +1589,17 @@
             shapesWrapper.classList.toggle('active', currentTool === 'shape');
             document.getElementById('eraserBtn').classList.toggle('active', currentTool === 'eraser');
             document.getElementById('textBtn').classList.toggle('active', currentTool === 'text');
+            document.getElementById('selectBtn').classList.toggle('active', currentTool === 'select');
+
+            // Toggle select-mode class on annotation layers
+            document.querySelectorAll('.annotationLayer').forEach(layer => {
+                layer.classList.toggle('select-mode', currentTool === 'select');
+            });
+
+            // Clear selection when switching tools
+            if (currentTool !== 'select') {
+                clearAnnotationSelection();
+            }
         }
 
         document.getElementById('drawBtn').onclick = () => setTool('pen');
@@ -1339,6 +1607,7 @@
         document.getElementById('shapesBtn').onclick = () => setTool('shape');
         document.getElementById('eraserBtn').onclick = () => setTool('eraser');
         document.getElementById('textBtn').onclick = () => setTool('text');
+        document.getElementById('selectBtn').onclick = () => setTool('select');
 
         // Highlighter Colors
         document.querySelectorAll('#highlightColors .colorDot').forEach(dot => {
@@ -1437,7 +1706,10 @@
             svg.dataset.page = pageNum;
             svg.dataset.viewboxWidth = baseDims.width;
             svg.dataset.viewboxHeight = baseDims.height;
+            svg.dataset.viewboxHeight = baseDims.height;
             pageView.div.appendChild(svg);
+
+
 
             // Restore saved annotations for this page
             if (annotationsStore.has(pageNum)) {
@@ -1448,6 +1720,19 @@
             svg.addEventListener('mousemove', draw);
             svg.addEventListener('mouseup', () => stopDraw(pageNum));
             svg.addEventListener('mouseleave', () => stopDraw(pageNum));
+
+            // Touch support for tablets
+            svg.addEventListener('touchstart', (e) => {
+                // Prevent default to avoid scroll while drawing/selecting
+                if (currentTool) e.preventDefault();
+                startDraw(e, pageNum);
+            }, { passive: false });
+            svg.addEventListener('touchmove', (e) => {
+                if (currentTool) e.preventDefault();
+                draw(e);
+            }, { passive: false });
+            svg.addEventListener('touchend', () => stopDraw(pageNum));
+            svg.addEventListener('touchcancel', () => stopDraw(pageNum));
 
             svg.classList.toggle('active', annotationMode);
         }
@@ -1469,6 +1754,13 @@
             const svg = e.currentTarget;
             if (!svg || !svg.dataset.viewboxWidth) return; // Defensive check
 
+            // Handle select tool separately
+            if (currentTool === 'select') {
+                if (handleSelectMouseDown(e, svg, pageNum)) {
+                    return; // Select tool handled the event
+                }
+            }
+
             isDrawing = true;
             currentDrawingPage = pageNum;
             currentSvg = svg; // Store reference
@@ -1481,8 +1773,10 @@
             const scaleX = viewBoxWidth / rect.width;
             const scaleY = viewBoxHeight / rect.height;
 
-            const x = (e.clientX - rect.left) * scaleX;
-            const y = (e.clientY - rect.top) * scaleY;
+            // Get coordinates from mouse or touch event
+            const coords = getEventCoords(e);
+            const x = (coords.clientX - rect.left) * scaleX;
+            const y = (coords.clientY - rect.top) * scaleY;
 
             if (currentTool === 'eraser') {
                 eraseAt(svg, x, y, scaleX);
@@ -1577,8 +1871,10 @@
             const scaleX = viewBoxWidth / rect.width;
             const scaleY = viewBoxHeight / rect.height;
 
-            const x = (e.clientX - rect.left) * scaleX;
-            const y = (e.clientY - rect.top) * scaleY;
+            // Get coordinates from mouse or touch event
+            const coords = getEventCoords(e);
+            const x = (coords.clientX - rect.left) * scaleX;
+            const y = (coords.clientY - rect.top) * scaleY;
 
             if (currentTool === 'eraser') {
                 eraseAt(svg, x, y, scaleX);
@@ -1607,7 +1903,7 @@
                     shapeEl.setAttribute('cy', (startY + y) / 2);
                     shapeEl.setAttribute('rx', rx);
                     shapeEl.setAttribute('ry', ry);
-                } else if (currentShape === 'line' || currentShape === 'arrow') {
+                } else if (currentShape === 'line' || currentShape === 'arrow' || currentShape === 'callout') {
                     shapeEl.setAttribute('x2', x);
                     shapeEl.setAttribute('y2', y);
                 }
@@ -1645,6 +1941,71 @@
                     arrowHead.setAttribute('stroke-width', shapeEl.getAttribute('stroke-width'));
                     arrowHead.setAttribute('fill', 'none');
                     currentSvg.appendChild(arrowHead);
+                }
+            }
+
+            // Handle callout - arrow with text at the start, pointing to end
+            // UX: Click where you want text box, drag to point at something
+            if (currentTool === 'shape' && currentShape === 'callout' && currentSvg) {
+                const shapeEl = currentSvg.querySelector('.current-shape');
+                if (shapeEl && shapeEl.tagName === 'line') {
+                    const x1 = parseFloat(shapeEl.getAttribute('x1')); // Start - where text box goes
+                    const y1 = parseFloat(shapeEl.getAttribute('y1'));
+                    const x2 = parseFloat(shapeEl.getAttribute('x2')); // End - where arrow points
+                    const y2 = parseFloat(shapeEl.getAttribute('y2'));
+
+                    // Only create callout if line has been drawn (not just a click)
+                    if (Math.abs(x2 - x1) > 5 || Math.abs(y2 - y1) > 5) {
+                        const scaleX = parseFloat(currentSvg.dataset.shapeScaleX || 1);
+
+                        // Arrow head points TO the end (x2,y2) - where user wants to point at
+                        const angle = Math.atan2(y2 - y1, x2 - x1);
+                        const headLength = 12 * scaleX;
+
+                        const arrowHead = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                        const p1x = x2 - headLength * Math.cos(angle - Math.PI / 6);
+                        const p1y = y2 - headLength * Math.sin(angle - Math.PI / 6);
+                        const p2x = x2 - headLength * Math.cos(angle + Math.PI / 6);
+                        const p2y = y2 - headLength * Math.sin(angle + Math.PI / 6);
+
+                        arrowHead.setAttribute('d', `M${x2},${y2} L${p1x},${p1y} M${x2},${y2} L${p2x},${p2y}`);
+                        arrowHead.setAttribute('stroke', shapeEl.getAttribute('stroke'));
+                        arrowHead.setAttribute('stroke-width', shapeEl.getAttribute('stroke-width'));
+                        arrowHead.setAttribute('fill', 'none');
+                        arrowHead.classList.add('callout-arrow');
+                        currentSvg.appendChild(arrowHead);
+
+                        // Store references for text editor
+                        const svg = currentSvg;
+                        const currentPageNum = currentDrawingPage;
+                        const arrowColor = shapeEl.getAttribute('stroke');
+
+                        // Calculate screen position for text editor at START of arrow (x1,y1)
+                        // This is where the user clicked first - where they want the text
+                        const rect = svg.getBoundingClientRect();
+                        const viewBoxWidth = parseFloat(svg.dataset.viewboxWidth);
+                        const viewBoxHeight = parseFloat(svg.dataset.viewboxHeight);
+                        const screenX = rect.left + (x1 / viewBoxWidth) * rect.width;
+                        const screenY = rect.top + (y1 / viewBoxHeight) * rect.height;
+
+                        // Remove the current-shape class before showing editor
+                        shapeEl.classList.remove('current-shape');
+
+                        // Save first, then open text editor
+                        saveAnnotations(currentPageNum);
+
+                        // Open text editor at the START of the arrow (where user clicked)
+                        setTimeout(() => {
+                            showTextEditor(screenX, screenY, svg, x1, y1, scaleX, currentPageNum, null, arrowColor);
+                        }, 50);
+
+                        // Reset state
+                        isDrawing = false;
+                        currentPath = null;
+                        currentSvg = null;
+                        currentDrawingPage = null;
+                        return; // Exit early, text editor will handle the rest
+                    }
                 }
             }
 
@@ -1711,6 +2072,7 @@
                     const viewBoxHeight = parseFloat(svg.dataset.viewboxHeight);
                     const svgX = parseFloat(textEl.getAttribute('x'));
                     const svgY = parseFloat(textEl.getAttribute('y'));
+                    // Note: showTextEditor needs scaleX for font scaling logic, which we still have from arguments
                     showTextEditor(ev.clientX, ev.clientY, svg, svgX, svgY, scaleX, pageNum, textEl);
                 }
 
@@ -1724,14 +2086,17 @@
         // Inline Text Editor
         let textFontSize = 14;
 
-        function showTextEditor(screenX, screenY, svg, svgX, svgY, scale, pageNum, existingTextEl = null) {
+        function showTextEditor(screenX, screenY, svg, svgX, svgY, scale, pageNum, existingTextEl = null, overrideColor = null) {
             // Remove existing editor if any
             const existingOverlay = document.querySelector('.textEditorOverlay');
             if (existingOverlay) existingOverlay.remove();
 
+            // Use override color (for callout) or current color
+            const textColor = overrideColor || currentColor;
+
             // If editing existing text, get its properties
             let editingText = null;
-            if (existingTextEl) {
+            if (existingTextEl && typeof existingTextEl === 'object' && existingTextEl.textContent !== undefined) {
                 editingText = existingTextEl.textContent;
                 textFontSize = parseFloat(existingTextEl.getAttribute('font-size')) / scale || 14;
             }
@@ -1750,7 +2115,7 @@
             const input = document.createElement('div');
             input.className = 'textEditorInput';
             input.contentEditable = true;
-            input.style.color = currentColor;
+            input.style.color = textColor;
             input.style.fontSize = textFontSize + 'px';
             if (editingText) {
                 input.textContent = editingText;
@@ -1763,7 +2128,7 @@
             // Color indicator
             const colorDot = document.createElement('div');
             colorDot.className = 'textEditorColorDot active';
-            colorDot.style.background = currentColor;
+            colorDot.style.background = textColor;
 
             // Font size decrease
             const decreaseBtn = document.createElement('button');
@@ -1831,14 +2196,14 @@
                     if (existingTextEl) {
                         // Update existing text element
                         existingTextEl.textContent = text;
-                        existingTextEl.setAttribute('fill', currentColor);
+                        existingTextEl.setAttribute('fill', textColor);
                         existingTextEl.setAttribute('font-size', String(textFontSize * scale));
                     } else {
                         // Create new text element
                         const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
                         textEl.setAttribute('x', svgX.toFixed(2));
                         textEl.setAttribute('y', svgY.toFixed(2));
-                        textEl.setAttribute('fill', currentColor);
+                        textEl.setAttribute('fill', textColor);
                         textEl.setAttribute('font-size', String(textFontSize * scale));
                         textEl.setAttribute('font-family', 'Segoe UI, Arial, sans-serif');
                         textEl.textContent = text;
@@ -2076,6 +2441,280 @@
         });
 
         // ==========================================
+        // SELECT/MOVE TOOL (Fixed + Touch Support)
+        // ==========================================
+        let selectedAnnotation = null;
+        let selectedSvg = null;
+        let selectedPageNum = null;
+        let copiedAnnotation = null;
+        let copiedPageNum = null;
+        let isDraggingAnnotation = false;
+        let annotationDragStartX = 0;
+        let annotationDragStartY = 0;
+
+        // Create selection toolbar for touch devices
+        const selectionToolbar = document.createElement('div');
+        selectionToolbar.className = 'selection-toolbar';
+        selectionToolbar.innerHTML = `
+            <button data-action="copy" title="Kopyala (Ctrl+C)">
+                <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                <span>Kopyala</span>
+            </button>
+            <button data-action="duplicate" title="Çoğalt">
+                <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+                <span>Çoğalt</span>
+            </button>
+            <button data-action="delete" class="delete" title="Sil (Del)">
+                <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                <span>Sil</span>
+            </button>
+        `;
+        document.body.appendChild(selectionToolbar);
+
+        // Selection toolbar event handlers
+        selectionToolbar.addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+
+            const action = btn.dataset.action;
+            if (action === 'copy') {
+                copySelectedAnnotation();
+                showToast('Kopyalandı!');
+            } else if (action === 'duplicate') {
+                copySelectedAnnotation();
+                pasteAnnotation();
+                showToast('Çoğaltıldı!');
+            } else if (action === 'delete') {
+                deleteSelectedAnnotation();
+                showToast('Silindi!');
+            }
+        });
+
+        function showToast(message) {
+            const existingToast = document.querySelector('.toast-notification');
+            if (existingToast) existingToast.remove();
+
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+
+        function updateSelectionToolbar() {
+            if (selectedAnnotation && currentTool === 'select') {
+                selectionToolbar.classList.add('visible');
+            } else {
+                selectionToolbar.classList.remove('visible');
+            }
+        }
+
+        function clearAnnotationSelection() {
+            if (selectedAnnotation) {
+                selectedAnnotation.classList.remove('annotation-selected', 'annotation-dragging', 'just-selected');
+            }
+            selectedAnnotation = null;
+            selectedSvg = null;
+            selectedPageNum = null;
+            isDraggingAnnotation = false;
+            updateSelectionToolbar();
+        }
+
+        function selectAnnotation(element, svg, pageNum) {
+            clearAnnotationSelection();
+            selectedAnnotation = element;
+            selectedSvg = svg;
+            selectedPageNum = pageNum;
+            element.classList.add('annotation-selected', 'just-selected');
+
+            // Remove pulse animation after it completes
+            setTimeout(() => {
+                element.classList.remove('just-selected');
+            }, 600);
+
+            updateSelectionToolbar();
+        }
+
+        function deleteSelectedAnnotation() {
+            if (selectedAnnotation && selectedSvg) {
+                selectedAnnotation.remove();
+                saveAnnotations(selectedPageNum);
+                clearAnnotationSelection();
+            }
+        }
+
+        function copySelectedAnnotation() {
+            if (selectedAnnotation) {
+                copiedAnnotation = selectedAnnotation.cloneNode(true);
+                copiedAnnotation.classList.remove('annotation-selected', 'annotation-dragging', 'just-selected');
+                copiedPageNum = selectedPageNum;
+            }
+        }
+
+        function pasteAnnotation() {
+            if (!copiedAnnotation || !pdfViewer) return;
+
+            // Paste to current page
+            const currentPage = pdfViewer.currentPageNumber;
+            const pageView = pdfViewer.getPageView(currentPage - 1);
+            const svg = pageView?.div?.querySelector('.annotationLayer');
+
+            if (svg) {
+                const cloned = copiedAnnotation.cloneNode(true);
+                const offset = 30; // Offset amount for pasted elements
+
+                // Offset pasted element slightly
+                if (cloned.tagName === 'path') {
+                    // For paths, add/update transform translate
+                    const currentTransform = cloned.getAttribute('transform') || '';
+                    const match = currentTransform.match(/translate\(([^,]+),([^)]+)\)/);
+                    let tx = offset, ty = offset;
+                    if (match) {
+                        tx = parseFloat(match[1]) + offset;
+                        ty = parseFloat(match[2]) + offset;
+                    }
+                    cloned.setAttribute('transform', `translate(${tx}, ${ty})`);
+                } else if (cloned.tagName === 'rect') {
+                    cloned.setAttribute('x', parseFloat(cloned.getAttribute('x')) + offset);
+                    cloned.setAttribute('y', parseFloat(cloned.getAttribute('y')) + offset);
+                } else if (cloned.tagName === 'ellipse') {
+                    cloned.setAttribute('cx', parseFloat(cloned.getAttribute('cx')) + offset);
+                    cloned.setAttribute('cy', parseFloat(cloned.getAttribute('cy')) + offset);
+                } else if (cloned.tagName === 'line') {
+                    cloned.setAttribute('x1', parseFloat(cloned.getAttribute('x1')) + offset);
+                    cloned.setAttribute('y1', parseFloat(cloned.getAttribute('y1')) + offset);
+                    cloned.setAttribute('x2', parseFloat(cloned.getAttribute('x2')) + offset);
+                    cloned.setAttribute('y2', parseFloat(cloned.getAttribute('y2')) + offset);
+                } else if (cloned.tagName === 'text') {
+                    cloned.setAttribute('x', parseFloat(cloned.getAttribute('x')) + offset);
+                    cloned.setAttribute('y', parseFloat(cloned.getAttribute('y')) + offset);
+                }
+
+                svg.appendChild(cloned);
+                saveAnnotations(currentPage);
+                selectAnnotation(cloned, svg, currentPage);
+            }
+        }
+
+        // Get coordinates from mouse or touch event
+        function getEventCoords(e) {
+            if (e.touches && e.touches.length > 0) {
+                return { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY };
+            }
+            if (e.changedTouches && e.changedTouches.length > 0) {
+                return { clientX: e.changedTouches[0].clientX, clientY: e.changedTouches[0].clientY };
+            }
+            return { clientX: e.clientX, clientY: e.clientY };
+        }
+
+        // Handle select tool events (both mouse and touch)
+        function handleSelectPointerDown(e, svg, pageNum) {
+            if (currentTool !== 'select') return false;
+
+            const coords = getEventCoords(e);
+            const target = e.target;
+
+            if (target === svg || target.tagName === 'svg') {
+                // Clicked on empty area - deselect
+                clearAnnotationSelection();
+                return true;
+            }
+
+            // Check if clicked on an annotation element
+            if (target.closest('.annotationLayer') && target !== svg) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                selectAnnotation(target, svg, pageNum);
+
+                // Start drag
+                const rect = svg.getBoundingClientRect();
+                const viewBoxWidth = parseFloat(svg.dataset.viewboxWidth);
+                const viewBoxHeight = parseFloat(svg.dataset.viewboxHeight);
+                const scaleX = viewBoxWidth / rect.width;
+                const scaleY = viewBoxHeight / rect.height;
+
+                isDraggingAnnotation = true;
+                annotationDragStartX = coords.clientX;
+                annotationDragStartY = coords.clientY;
+
+                target.classList.add('annotation-dragging');
+
+                function onMove(ev) {
+                    if (!isDraggingAnnotation) return;
+                    ev.preventDefault();
+
+                    const moveCoords = getEventCoords(ev);
+                    const dx = (moveCoords.clientX - annotationDragStartX) * scaleX;
+                    const dy = (moveCoords.clientY - annotationDragStartY) * scaleY;
+
+                    // Move the element
+                    moveAnnotation(target, dx, dy);
+
+                    // Update start position for next move (CRITICAL FIX)
+                    annotationDragStartX = moveCoords.clientX;
+                    annotationDragStartY = moveCoords.clientY;
+                }
+
+                function onEnd(ev) {
+                    document.removeEventListener('mousemove', onMove);
+                    document.removeEventListener('mouseup', onEnd);
+                    document.removeEventListener('touchmove', onMove);
+                    document.removeEventListener('touchend', onEnd);
+                    document.removeEventListener('touchcancel', onEnd);
+
+                    target.classList.remove('annotation-dragging');
+                    isDraggingAnnotation = false;
+                    saveAnnotations(pageNum);
+                }
+
+                document.addEventListener('mousemove', onMove, { passive: false });
+                document.addEventListener('mouseup', onEnd);
+                document.addEventListener('touchmove', onMove, { passive: false });
+                document.addEventListener('touchend', onEnd);
+                document.addEventListener('touchcancel', onEnd);
+
+                return true;
+            }
+
+            return false;
+        }
+
+        // moveAnnotation - applies delta movement to an annotation element
+        function moveAnnotation(element, dx, dy) {
+            if (element.tagName === 'path') {
+                // Transform path using translate
+                const currentTransform = element.getAttribute('transform') || '';
+                const match = currentTransform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+                let tx = 0, ty = 0;
+                if (match) {
+                    tx = parseFloat(match[1]);
+                    ty = parseFloat(match[2]);
+                }
+                element.setAttribute('transform', `translate(${tx + dx}, ${ty + dy})`);
+            } else if (element.tagName === 'rect') {
+                element.setAttribute('x', parseFloat(element.getAttribute('x')) + dx);
+                element.setAttribute('y', parseFloat(element.getAttribute('y')) + dy);
+            } else if (element.tagName === 'ellipse') {
+                element.setAttribute('cx', parseFloat(element.getAttribute('cx')) + dx);
+                element.setAttribute('cy', parseFloat(element.getAttribute('cy')) + dy);
+            } else if (element.tagName === 'line') {
+                element.setAttribute('x1', parseFloat(element.getAttribute('x1')) + dx);
+                element.setAttribute('y1', parseFloat(element.getAttribute('y1')) + dy);
+                element.setAttribute('x2', parseFloat(element.getAttribute('x2')) + dx);
+                element.setAttribute('y2', parseFloat(element.getAttribute('y2')) + dy);
+            } else if (element.tagName === 'text') {
+                element.setAttribute('x', parseFloat(element.getAttribute('x')) + dx);
+                element.setAttribute('y', parseFloat(element.getAttribute('y')) + dy);
+            }
+        }
+
+        // Legacy function for backwards compatibility (used elsewhere)
+        function handleSelectMouseDown(e, svg, pageNum) {
+            return handleSelectPointerDown(e, svg, pageNum);
+        }
+
+        // ==========================================
         // KEYBOARD SHORTCUTS
         // ==========================================
         document.addEventListener('keydown', (e) => {
@@ -2090,6 +2729,23 @@
             if (key === 'e') { setTool('eraser'); e.preventDefault(); }
             if (key === 't') { setTool('text'); e.preventDefault(); }
             if (key === 'r') { setTool('shape'); e.preventDefault(); }
+            if (key === 'v') { setTool('select'); e.preventDefault(); }
+
+            // Delete selected annotation
+            if ((key === 'delete' || key === 'backspace') && selectedAnnotation) {
+                deleteSelectedAnnotation();
+                e.preventDefault();
+            }
+
+            // Copy/Paste annotations
+            if ((e.ctrlKey || e.metaKey) && key === 'c' && selectedAnnotation) {
+                copySelectedAnnotation();
+                e.preventDefault();
+            }
+            if ((e.ctrlKey || e.metaKey) && key === 'v' && copiedAnnotation) {
+                pasteAnnotation();
+                e.preventDefault();
+            }
 
             // Navigation
             if (key === 's') {

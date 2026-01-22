@@ -1,3 +1,4 @@
+{
   "name": "nodebb-plugin-secure-pdf",
   "version": "1.0.0",
   "description": "A secure, high-performance NodeBB plugin for viewing PDFs. Features include advanced annotation tools (Highlight, Draw, Text, Shapes), responsive sidebar, dark/sepia modes, and mobile-friendly UI.",
