@@ -1,6 +1,6 @@
 {
   "name": "nodebb-plugin-secure-pdf",
-  "version": "1.0.0",
+  "version": "1.0.6",
   "description": "A secure, high-performance NodeBB plugin for viewing PDFs. Features include advanced annotation tools (Highlight, Draw, Text, Shapes), responsive sidebar, dark/sepia modes, and mobile-friendly UI.",
   "main": "library.js",
   "repository": {
@@ -23,7 +23,7 @@
     "url": "https://github.com/sucreistaken/secure-pdf/issues"
   },
   "nbbpm": {
-    "compatibility": "^3.2.0"
+    "compatibility": "^3.2.0 || ^4.0.0"
   },
   "devDependencies": {
     "eslint": "9.39.2",
@@ -36,6 +36,7 @@
   "author": "Sucre",
   "homepage": "https://github.com/sucreistaken/secure-pdf#readme",
   "dependencies": {
-    "pdfjs-dist": "^4.0.379"
+    "@napi-rs/canvas": "^0.1.65",
+    "pdfjs-dist": "~3.11.174"
   }
 }

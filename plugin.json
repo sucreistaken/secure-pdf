@@ -23,7 +23,7 @@
 		"public/lib/acp-main.js"
 	],
 	"modules": {
-		"../client/secure-pdf.js": "./public/lib/viewer.js"
+		"../client/secure-pdf/viewer.js": "./public/lib/viewer.js"
 	},
 	"templates": "templates"
 }
