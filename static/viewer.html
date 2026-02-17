@@ -2904,7 +2904,7 @@
                 // Save current state to undo stack with rotation
                 if (!undoStacks.has(pageNum)) undoStacks.set(pageNum, []);
                 const stack = undoStacks.get(pageNum);
-                stack.push({ html: svg.innerHTML, rotation: pdfViewer.pagesRotation || 0 });
+                stack.push({ html: getCleanSvgInnerHTML(svg), rotation: pdfViewer.pagesRotation || 0 });
                 if (stack.length > MAX_HISTORY) stack.shift();
 
                 // Clear redo stack
@@ -4395,7 +4395,7 @@
                     else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
                 } else {
                     const el = document.documentElement;
-                    if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+                    if (el.requestFullscreen) el.requestFullscreen().catch(() => { });
                     else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
                 }
             }

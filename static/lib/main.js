@@ -73,11 +73,13 @@
 			const cached = pdfBufferCache.get(filename);
 			if (cached && event.source) {
 				// Send cached buffer to viewer (transferable for 0-copy)
+				// Clone once: keep original in cache, transfer the copy
+				const copy = cached.slice(0);
 				event.source.postMessage({
 					type: 'pdf-secure-cache-response',
 					filename: filename,
-					buffer: cached
-				}, event.origin, [cached.slice(0)]);  // Clone buffer since we keep original
+					buffer: copy
+				}, event.origin, [copy]);
 				console.log('[PDF-Secure] Cache: Hit -', filename);
 			} else if (event.source) {
 				// No cache, viewer will fetch normally
