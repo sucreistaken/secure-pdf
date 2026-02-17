@@ -1,0 +1,1484 @@
+/* Microsoft Edge / Dark Theme */
+:root {
+    --bg-primary: #1f1f1f;
+    --bg-secondary: #2d2d2d;
+    --bg-tertiary: #3d3d3d;
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0a0;
+    --accent: #0078d4;
+    --accent-hover: #1a86d9;
+    --border-color: #404040;
+    --toolbar-height: 48px;
+    --sidebar-width: 200px;
+    --toolbar-height-mobile: 44px;
+    --bottom-bar-height: 52px;
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-left: env(safe-area-inset-left, 0px);
+    --safe-area-right: env(safe-area-inset-right, 0px);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+    background: var(--bg-primary);
+    font-family: "Segoe UI", system-ui, sans-serif;
+    font-size: 14px;
+    overflow: hidden;
+    color: var(--text-primary);
+    /* Security: prevent text selection globally */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Print Protection - hide everything when printing */
+@media print {
+
+    html,
+    body,
+    #viewerContainer,
+    #viewer,
+    .pdfViewer,
+    .page {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
+    body::before {
+        content: 'Bu içeriğin yazdırılması engellenmiştir.' !important;
+        display: block !important;
+        font-size: 24px;
+        padding: 50px;
+        text-align: center;
+        color: #666;
+    }
+}
+
+/* Loading Spinner Animation */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+.dropzone svg.spin {
+    fill: var(--accent);
+}
+
+/* Toolbar - Edge Style */
+#toolbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--toolbar-height);
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 4px;
+    z-index: 100;
+}
+
+.toolbarGroup {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.toolbarBtn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.1s;
+}
+
+.toolbarBtn:hover {
+    background: var(--bg-tertiary);
+}
+
+.toolbarBtn.active {
+    background: var(--accent);
+}
+
+.toolbarBtn svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+}
+
+.separator {
+    width: 1px;
+    height: 24px;
+    background: var(--border-color);
+    margin: 0 8px;
+}
+
+/* Enhanced Tooltips */
+.toolbarBtn {
+    position: relative;
+}
+
+.toolbarBtn::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 1000;
+    margin-top: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+}
+
+.toolbarBtn::before {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-bottom-color: #1a1a1a;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 1001;
+    margin-top: -4px;
+}
+
+.toolbarBtn:hover::after,
+.toolbarBtn:hover::before {
+    opacity: 1;
+    visibility: visible;
+}
+
+.toolbarBtn .shortcut {
+    display: inline;
+    opacity: 0.6;
+    margin-left: 8px;
+    padding: 2px 5px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+    font-size: 10px;
+}
+
+/* Context Menu */
+.contextMenu {
+    position: fixed;
+    background: #2d2d2d;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 6px 0;
+    min-width: 180px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    z-index: 2000;
+    display: none;
+}
+
+.contextMenu.visible {
+    display: block;
+}
+
+.contextMenuItem {
+    padding: 10px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-primary);
+    font-size: 13px;
+    transition: background 0.1s;
+}
+
+.contextMenuItem:hover {
+    background: var(--bg-tertiary);
+}
+
+.contextMenuItem svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    opacity: 0.8;
+}
+
+.contextMenuItem .shortcutHint {
+    margin-left: auto;
+    opacity: 0.5;
+    font-size: 11px;
+}
+
+.contextMenuDivider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 6px 0;
+}
+
+/* Tool Dropdown Panel - Microsoft Edge Style */
+.toolDropdown {
+    position: absolute;
+    top: calc(var(--toolbar-height) + 4px);
+    background: #2d2d2d;
+    border-radius: 8px;
+    padding: 16px;
+    min-width: 240px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    display: none;
+    z-index: 200;
+}
+
+.toolDropdown.visible {
+    display: block;
+}
+
+.dropdownSection {
+    margin-bottom: 16px;
+}
+
+.dropdownSection:last-child {
+    margin-bottom: 0;
+}
+
+.dropdownLabel {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dropdownLabel svg {
+    width: 14px;
+    height: 14px;
+    fill: var(--text-secondary);
+}
+
+/* Color Grid */
+.colorGrid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+}
+
+.colorDot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.1s, border-color 0.1s;
+}
+
+.colorDot:hover {
+    transform: scale(1.1);
+}
+
+.colorDot.active {
+    border-color: var(--text-primary);
+}
+
+/* Stroke Preview Wave */
+.strokePreview {
+    height: 50px;
+    background: #1f1f1f;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    overflow: hidden;
+}
+
+.strokePreview svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* Thickness Slider */
+.thicknessSlider {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.thicknessSlider input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    background: #555;
+    border-radius: 2px;
+    outline: none;
+}
+
+.thicknessSlider input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.thicknessSlider input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+.thicknessLabels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* Tool button with dropdown arrow */
+.toolbarBtnWithDropdown {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.toolbarBtnWithDropdown .toolbarBtn {
+    border-radius: 4px 0 0 4px;
+}
+
+.dropdownArrow {
+    width: 20px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dropdownArrow:hover {
+    background: var(--bg-tertiary);
+}
+
+.toolbarBtnWithDropdown.active .toolbarBtn,
+.toolbarBtnWithDropdown.active .dropdownArrow {
+    background: var(--accent);
+}
+
+.dropdownArrow svg {
+    width: 12px;
+    height: 12px;
+    fill: currentColor;
+}
+
+/* Overflow Menu Items */
+.overflowItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    width: 100%;
+    border-radius: 6px;
+    font-size: 14px;
+    white-space: nowrap;
+}
+.overflowItem:hover { background: var(--bg-tertiary); }
+.overflowItem svg { width: 20px; height: 20px; fill: currentColor; flex-shrink: 0; }
+.overflowItem.active { color: var(--accent); }
+.overflowDivider { height: 1px; background: var(--border-color); margin: 6px 0; }
+
+/* Overflow: visible on all screens, originals hidden */
+#overflowWrapper { display: flex; }
+.overflowSep { display: block; }
+
+/* Hide rotate, sepia and their separators (children 3-8 of view group) */
+.toolbarGroup:nth-child(5) > :nth-child(3),
+.toolbarGroup:nth-child(5) > :nth-child(4),
+.toolbarGroup:nth-child(5) > :nth-child(5),
+.toolbarGroup:nth-child(5) > :nth-child(6),
+.toolbarGroup:nth-child(5) > :nth-child(7),
+.toolbarGroup:nth-child(5) > :nth-child(8) { display: none !important; }
+
+/* Shape Grid */
+.shapeGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.shapeBtn {
+    width: 48px;
+    height: 48px;
+    background: #1f1f1f;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary);
+    transition: border-color 0.1s, background 0.1s;
+}
+
+.shapeBtn:hover {
+    background: #3d3d3d;
+}
+
+.shapeBtn.active {
+    border-color: var(--accent);
+    background: #3d3d3d;
+}
+
+.shapeBtn svg {
+    width: 28px;
+    height: 28px;
+}
+
+/* Page Info */
+.pageInfo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+}
+
+#pageInput {
+    width: 40px;
+    height: 28px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-primary);
+    text-align: center;
+    font-size: 13px;
+}
+
+#pageCount {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+/* Sidebar - Thumbnails */
+#sidebar {
+    position: fixed;
+    top: var(--toolbar-height);
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-width);
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+    overflow-y: auto;
+    display: none;
+    z-index: 50;
+}
+
+#sidebar.open {
+    display: block;
+}
+
+.sidebarHeader {
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.closeBtn {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 18px;
+}
+
+#thumbnailContainer {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.thumbnail {
+    background: var(--bg-tertiary);
+    border: 2px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 4px;
+    transition: border-color 0.15s;
+}
+
+.thumbnail:hover {
+    border-color: var(--accent);
+}
+
+.thumbnail.active {
+    border-color: var(--accent);
+}
+
+.thumbnail canvas {
+    width: 100%;
+    display: block;
+}
+
+.thumbnailNum {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+/* Viewer Container */
+#viewerContainer {
+    position: fixed;
+    top: var(--toolbar-height);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: auto;
+    background: #525659;
+    z-index: 1;
+}
+
+#viewerContainer.withSidebar {
+    left: var(--sidebar-width);
+}
+
+.pdfViewer .page {
+    margin: 8px auto;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    position: relative;
+    transition: filter 0.3s ease;
+}
+
+/* Sepia Reading Mode */
+.pdfViewer.sepia .page canvas {
+    filter: sepia(40%) brightness(0.95) contrast(0.9);
+}
+
+.pdfViewer.sepia .page {
+    background: #f4ecd8 !important;
+}
+
+#viewerContainer.sepia {
+    background: #d4c9a8;
+}
+
+/* Annotation Layer */
+.annotationLayer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.annotationLayer.active {
+    pointer-events: auto;
+    cursor: crosshair;
+}
+
+.annotationLayer path {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* Select tool cursor */
+.annotationLayer.select-mode {
+    cursor: default;
+}
+
+.annotationLayer.select-mode path,
+.annotationLayer.select-mode rect,
+.annotationLayer.select-mode ellipse,
+.annotationLayer.select-mode line,
+.annotationLayer.select-mode text {
+    cursor: grab;
+    pointer-events: all;
+    transition: transform 0.1s ease, opacity 0.1s ease;
+}
+
+/* Invisible hit area for easier selection */
+.annotationLayer.select-mode path,
+.annotationLayer.select-mode line {
+    stroke-linecap: round;
+}
+
+.annotationLayer.select-mode path:hover,
+.annotationLayer.select-mode rect:hover,
+.annotationLayer.select-mode ellipse:hover,
+.annotationLayer.select-mode line:hover,
+.annotationLayer.select-mode text:hover {
+    opacity: 0.8;
+    cursor: grab;
+}
+
+/* Selected annotation element - use filter for SVG compatibility */
+.annotation-selected {
+    filter: drop-shadow(0 0 4px #0078d4) !important;
+    opacity: 1 !important;
+}
+
+/* Marquee selection rectangle */
+.annotationLayer .marquee-rect {
+    fill: rgba(0, 120, 212, 0.1) !important;
+    stroke: #0078d4 !important;
+    stroke-width: 1 !important;
+    stroke-dasharray: 4 2 !important;
+    pointer-events: none !important;
+    cursor: default !important;
+    opacity: 1 !important;
+    filter: none !important;
+    transition: none !important;
+}
+
+/* Multi-selected annotations */
+.annotation-multi-selected {
+    filter: drop-shadow(0 0 3px #0078d4) !important;
+    opacity: 0.9 !important;
+}
+
+/* Touch feedback */
+.annotation-dragging {
+    opacity: 0.6;
+    cursor: grabbing !important;
+    filter: drop-shadow(0 4px 12px rgba(0, 120, 212, 0.5));
+}
+
+/* Tablet/Touch optimizations for select mode */
+@media (pointer: coarse),
+(max-width: 1024px) {
+
+    .annotationLayer.select-mode path,
+    .annotationLayer.select-mode rect,
+    .annotationLayer.select-mode ellipse,
+    .annotationLayer.select-mode line,
+    .annotationLayer.select-mode text {
+        /* Ensure touch-friendly interaction */
+        cursor: pointer;
+    }
+
+    /* Bigger toolbar buttons for touch */
+    .toolbarBtn {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+    }
+}
+
+/* Touch selection ring animation */
+@keyframes selectionPulse {
+    0% {
+        outline-color: rgba(0, 120, 212, 1);
+    }
+
+    50% {
+        outline-color: rgba(0, 120, 212, 0.5);
+    }
+
+    100% {
+        outline-color: rgba(0, 120, 212, 1);
+    }
+}
+
+.annotation-selected.just-selected {
+    animation: selectionPulse 0.6s ease-out;
+}
+
+/* Move handle for touch devices */
+.annotation-move-handle {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    background: rgba(0, 120, 212, 0.9);
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    cursor: grab;
+    z-index: 100;
+    touch-action: none;
+}
+
+.annotation-move-handle svg {
+    width: 20px;
+    height: 20px;
+    fill: white;
+}
+
+@media (pointer: coarse) {
+    .annotation-move-handle {
+        display: flex;
+    }
+}
+
+/* Ghost element while dragging */
+.annotation-ghost {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+/* Selection toolbar for touch - action buttons */
+.selection-toolbar {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: linear-gradient(135deg, #363636 0%, #2d2d2d 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    z-index: 2000;
+    opacity: 0;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+    pointer-events: none;
+}
+
+.selection-toolbar.visible {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.selection-toolbar::before {
+    content: 'Seçili Öğe';
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.selection-toolbar button {
+    width: 52px;
+    height: 52px;
+    border: none;
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: all 0.15s ease;
+    position: relative;
+}
+
+.selection-toolbar button:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.selection-toolbar button:active {
+    transform: translateY(0);
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.selection-toolbar button.delete {
+    background: rgba(196, 43, 28, 0.8);
+}
+
+.selection-toolbar button.delete:hover {
+    background: #e03e2f;
+    transform: translateY(-2px);
+}
+
+.selection-toolbar button svg {
+    width: 22px;
+    height: 22px;
+    fill: currentColor;
+}
+
+.selection-toolbar button span {
+    font-size: 9px;
+    opacity: 0.8;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* Toast notification for copy/paste */
+.toast-notification {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #323232;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 3000;
+    animation: toastIn 0.3s ease, toastOut 0.3s ease 1.7s forwards;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes toastIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+@keyframes toastOut {
+    from {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+    }
+}
+
+/* Text Selection Highlight */
+.textHighlight {
+    position: absolute;
+    pointer-events: none;
+    border-radius: 2px;
+}
+
+/* Selection Popup Button */
+.highlightPopup {
+    position: absolute;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 6px;
+    display: flex;
+    gap: 4px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    z-index: 500;
+}
+
+.highlightPopup button {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.highlightPopup button:hover {
+    transform: scale(1.15);
+}
+
+/* Upload Overlay */
+#uploadOverlay {
+    position: fixed;
+    top: var(--toolbar-height);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 40;
+}
+
+.dropzone {
+    width: 400px;
+    padding: 60px 40px;
+    background: var(--bg-secondary);
+    border: 2px dashed var(--border-color);
+    border-radius: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.dropzone:hover {
+    border-color: var(--accent);
+    background: var(--bg-tertiary);
+}
+
+.dropzone svg {
+    width: 64px;
+    height: 64px;
+    fill: var(--text-secondary);
+    margin-bottom: 16px;
+}
+
+.dropzone h2 {
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.dropzone p {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+/* Inline Text Editor */
+.textEditorOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+}
+
+.textEditorBox {
+    position: absolute;
+    background: white;
+    border: 2px solid var(--accent);
+    border-radius: 4px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    min-width: 200px;
+    max-width: 400px;
+}
+
+.textEditorInput {
+    padding: 12px 16px;
+    font-size: 14px;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    color: #333;
+    outline: none;
+    min-height: 40px;
+    word-wrap: break-word;
+}
+
+.textEditorInput:empty:before {
+    content: 'Buraya yazmaya başla...';
+    color: #999;
+}
+
+.textEditorToolbar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-top: 1px solid #e0e0e0;
+    background: #f5f5f5;
+    flex-wrap: wrap;
+}
+
+.textEditorColors {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.textEditorSizeGroup {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 4px;
+}
+
+.textEditorSizeLabel {
+    font-size: 12px;
+    font-weight: 600;
+    color: #333;
+    min-width: 24px;
+    text-align: center;
+    user-select: none;
+}
+
+.textEditorBtn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.textEditorBtn:hover {
+    background: #e0e0e0;
+}
+
+.textEditorBtn.delete {
+    color: #d32f2f;
+    margin-left: auto;
+}
+
+.textEditorColorDot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.textEditorColorDot:hover {
+    transform: scale(1.15);
+}
+
+.textEditorColorDot.active {
+    border-color: var(--accent);
+}
+
+/* Draggable text annotations */
+.annotationLayer svg text {
+    cursor: move;
+    user-select: none;
+}
+
+.annotationLayer svg text.dragging {
+    opacity: 0.7;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* ==========================================
+   BOTTOM TOOLBAR (Mobile Only)
+   ========================================== */
+#bottomToolbar {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: calc(var(--bottom-bar-height) + var(--safe-area-bottom));
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    z-index: 100;
+    padding: 0 8px;
+    padding-bottom: var(--safe-area-bottom);
+}
+
+.bottomToolbarInner {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: var(--bottom-bar-height);
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.bottomToolbarInner::-webkit-scrollbar {
+    display: none;
+}
+
+/* Dropdown backdrop overlay */
+#dropdownBackdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 250;
+}
+
+#dropdownBackdrop.visible {
+    display: block;
+}
+
+/* Bottom sheet drag handle */
+.bottomSheetHandle {
+    width: 40px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+    margin: 8px auto 4px;
+}
+
+/* ==========================================
+   MOBILE BREAKPOINT (max-width: 599px)
+   ========================================== */
+@media (max-width: 599px) {
+
+    /* Top toolbar - compact mobile layout */
+    #toolbar {
+        height: calc(var(--toolbar-height-mobile) + var(--safe-area-top));
+        padding-top: var(--safe-area-top);
+        padding-left: calc(8px + var(--safe-area-left));
+        padding-right: calc(8px + var(--safe-area-right));
+        gap: 2px;
+    }
+
+    /* Hide annotation tools from top bar on mobile (they go to bottom bar) */
+    #toolbar>.toolbarGroup:nth-child(3) {
+        display: none;
+    }
+
+    /* Hide separators adjacent to hidden group */
+    #toolbar>.separator:nth-child(2),
+    #toolbar>.separator:nth-child(4) {
+        display: none;
+    }
+
+    /* Show bottom toolbar */
+    #bottomToolbar {
+        display: block;
+    }
+
+    /* Viewer container adjusted for mobile toolbars */
+    #viewerContainer {
+        top: calc(var(--toolbar-height-mobile) + var(--safe-area-top));
+        bottom: calc(var(--bottom-bar-height) + var(--safe-area-bottom));
+    }
+
+    /* Upload overlay adjusted */
+    #uploadOverlay {
+        top: calc(var(--toolbar-height-mobile) + var(--safe-area-top));
+        bottom: calc(var(--bottom-bar-height) + var(--safe-area-bottom));
+    }
+
+    /* Sidebar - full width overlay on mobile */
+    #sidebar {
+        width: 100%;
+        z-index: 150;
+        top: calc(var(--toolbar-height-mobile) + var(--safe-area-top));
+        bottom: calc(var(--bottom-bar-height) + var(--safe-area-bottom));
+    }
+
+    #viewerContainer.withSidebar {
+        left: 0;
+    }
+
+    /* Dropdowns become bottom sheets on mobile */
+    .toolDropdown {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        top: auto !important;
+        border-radius: 16px 16px 0 0;
+        padding: 8px 16px calc(16px + var(--safe-area-bottom));
+        max-height: 60vh;
+        overflow-y: auto;
+        z-index: 300;
+        transform: translateY(100%);
+        transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+        display: block !important;
+        min-width: unset;
+        box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .toolDropdown.visible {
+        transform: translateY(0);
+    }
+
+    /* Responsive dropzone */
+    .dropzone {
+        width: 90%;
+        padding: 40px 20px;
+    }
+
+    .dropzone svg {
+        width: 48px;
+        height: 48px;
+    }
+
+    .dropzone h2 {
+        font-size: 16px;
+    }
+
+    /* Text editor bounds */
+    .textEditorBox {
+        max-width: calc(100vw - 32px);
+        max-height: calc(100vh - 120px);
+    }
+
+    /* Selection toolbar above bottom bar */
+    .selection-toolbar {
+        bottom: calc(var(--bottom-bar-height) + var(--safe-area-bottom) + 12px);
+    }
+
+    /* Toast above bottom bar */
+    .toast-notification {
+        bottom: calc(var(--bottom-bar-height) + var(--safe-area-bottom) + 16px);
+    }
+
+    /* Page info compact */
+    .pageInfo {
+        margin-left: auto;
+        gap: 4px;
+    }
+
+    #pageInput {
+        width: 32px;
+        font-size: 12px;
+    }
+
+    #pageCount {
+        font-size: 12px;
+    }
+
+    /* Hide tooltips on mobile (no hover) */
+    .toolbarBtn::after,
+    .toolbarBtn::before {
+        display: none;
+    }
+}
+
+/* ==========================================
+   TABLET BREAKPOINT (600px - 1024px)
+   ========================================== */
+
+/* --- Tablet shared (both orientations) --- */
+@media (min-width: 600px) and (max-width: 1024px) {
+
+    /* Scrollable toolbar */
+    #toolbar {
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    #toolbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Hide tooltips on touch tablets */
+    .toolbarBtn::after,
+    .toolbarBtn::before {
+        display: none;
+    }
+
+    /* Safe area insets for modern tablets */
+    #toolbar {
+        padding-top: var(--safe-area-top);
+        padding-left: calc(12px + var(--safe-area-left));
+        padding-right: calc(12px + var(--safe-area-right));
+    }
+
+    /* Text editor bounds check */
+    .textEditorBox {
+        max-width: calc(100vw - 48px);
+        max-height: calc(100vh - 140px);
+    }
+
+    /* Dropzone slightly smaller */
+    .dropzone {
+        width: 70%;
+    }
+}
+
+/* --- Tablet PORTRAIT --- */
+@media (min-width: 600px) and (max-width: 1024px) and (orientation: portrait) {
+
+    /* Top toolbar compact — height includes safe area (like mobile) */
+    #toolbar {
+        height: calc(var(--toolbar-height) + var(--safe-area-top));
+        gap: 2px;
+    }
+
+    /* Hide annotation tools group from top bar (CSS hides, JS moves) */
+    #toolbar>.toolbarGroup:nth-child(3) {
+        display: none;
+    }
+
+    #toolbar>.separator:nth-child(2),
+    #toolbar>.separator:nth-child(4) {
+        display: none;
+    }
+
+    /* Show bottom toolbar */
+    #bottomToolbar {
+        display: block;
+    }
+
+    /* Viewer container adjusted for both toolbars */
+    #viewerContainer {
+        top: calc(var(--toolbar-height) + var(--safe-area-top));
+        bottom: calc(var(--bottom-bar-height) + var(--safe-area-bottom));
+    }
+
+    #uploadOverlay {
+        top: calc(var(--toolbar-height) + var(--safe-area-top));
+        bottom: calc(var(--bottom-bar-height) + var(--safe-area-bottom));
+    }
+
+    /* Sidebar as overlay (don't push content) */
+    #sidebar {
+        width: 280px;
+        z-index: 150;
+        top: calc(var(--toolbar-height) + var(--safe-area-top));
+        bottom: calc(var(--bottom-bar-height) + var(--safe-area-bottom));
+    }
+
+    #viewerContainer.withSidebar {
+        left: 0;
+    }
+
+    /* Dropdowns become bottom sheets */
+    .toolDropdown {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        top: auto !important;
+        border-radius: 16px 16px 0 0;
+        padding: 12px 20px calc(16px + var(--safe-area-bottom));
+        max-height: 55vh;
+        overflow-y: auto;
+        z-index: 300;
+        transform: translateY(100%);
+        transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+        display: block !important;
+        min-width: unset;
+        box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .toolDropdown.visible {
+        transform: translateY(0);
+    }
+
+    /* Selection toolbar & toast above bottom bar */
+    .selection-toolbar {
+        bottom: calc(var(--bottom-bar-height) + var(--safe-area-bottom) + 12px);
+    }
+
+    .toast-notification {
+        bottom: calc(var(--bottom-bar-height) + var(--safe-area-bottom) + 16px);
+    }
+}
+
+/* --- Tablet LANDSCAPE --- */
+@media (min-width: 600px) and (max-width: 1024px) and (orientation: landscape) {
+
+    /* Toolbar stays single row, compact gaps */
+    #toolbar {
+        gap: 2px;
+    }
+
+    .separator {
+        margin: 0 4px;
+    }
+
+    /* Sidebar narrower to save space */
+    #sidebar {
+        width: 180px;
+    }
+
+    #viewerContainer.withSidebar {
+        left: 180px;
+    }
+
+    /* Dropdowns get wider min-width */
+    .toolDropdown {
+        min-width: 280px;
+    }
+}
+
+/* ==========================================
+   TOUCH-FRIENDLY SIZES (pointer: coarse)
+   ========================================== */
+@media (pointer: coarse) {
+    .thicknessSlider input[type="range"]::-webkit-slider-thumb {
+        width: 24px;
+        height: 24px;
+    }
+
+    .thicknessSlider input[type="range"]::-moz-range-thumb {
+        width: 24px;
+        height: 24px;
+    }
+
+    .colorDot {
+        width: 36px;
+        height: 36px;
+    }
+
+    .shapeBtn {
+        width: 56px;
+        height: 56px;
+    }
+}

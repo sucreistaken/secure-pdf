@@ -1,0 +1,53 @@
+{
+  "name": "nodebb-plugin-pdf-secure",
+  "version": "1.2.12",
+  "description": "Secure PDF viewer plugin for NodeBB - prevents downloading, enables canvas-only rendering with Premium group support",
+  "main": "library.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nodebb/nodebb-plugin-pdf-secure"
+  },
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "keywords": [
+    "nodebb",
+    "plugin",
+    "pdf",
+    "secure",
+    "viewer"
+  ],
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "git add"
+    ]
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nodebb/nodebb-plugin-pdf-secure/issues"
+  },
+  "readmeFilename": "README.md",
+  "nbbpm": {
+    "compatibility": "^3.2.0"
+  },
+  "dependencies": {
+    "pdf-lib": "^1.17.1",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "20.4.1",
+    "@commitlint/config-angular": "20.4.1",
+    "eslint": "9.39.2",
+    "eslint-config-nodebb": "1.1.11",
+    "husky": "9.1.7",
+    "lint-staged": "16.2.7",
+    "pdfjs-dist": "^4.9.155"
+  }
+}

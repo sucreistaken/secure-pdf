@@ -1,0 +1,142 @@
+/* PDF Secure Viewer — Inline Embed Styles for NodeBB */
+
+/* AGGRESSIVE: Hide NodeBB's large file preview SVG icons */
+[component="post/content"]>p>svg,
+[component="post/content"]>svg,
+[component="post/content"] svg[viewBox="0 0 24 24"]:not(.pdf-secure-embed svg) {
+	display: none !important;
+}
+
+/* Hide any standalone large SVG that looks like a file icon */
+[component="post/content"]>p:has(svg[viewBox]) {
+
+	/* If paragraph only contains an SVG, hide the whole paragraph */
+	&:not(:has(.pdf-secure-embed)):not(:has(a)):not(:has(span)):not(:has(img)) {
+		display: none !important;
+	}
+}
+
+/* Embedded PDF Container */
+.pdf-secure-embed {
+	margin: 16px 0;
+	border-radius: 12px;
+	overflow: hidden;
+	background: #1f1f1f;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* Header */
+.pdf-secure-embed-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 10px 16px;
+	background: linear-gradient(135deg, #2d2d2d 0%, #252525 100%);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.pdf-secure-embed-title {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	color: #fff;
+	font-size: 14px;
+	font-weight: 500;
+}
+
+.pdf-secure-embed-title svg {
+	width: 20px;
+	height: 20px;
+	fill: #e81224;
+	flex-shrink: 0;
+	/* Make sure our header icon is visible */
+	display: inline-block !important;
+}
+
+.pdf-secure-embed-title span {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 400px;
+}
+
+.pdf-secure-embed-actions {
+	display: flex;
+	gap: 8px;
+}
+
+.pdf-secure-fullscreen-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	background: rgba(255, 255, 255, 0.08);
+	border: none;
+	border-radius: 6px;
+	cursor: pointer;
+	transition: all 0.2s;
+}
+
+.pdf-secure-fullscreen-btn:hover {
+	background: rgba(255, 255, 255, 0.15);
+}
+
+.pdf-secure-fullscreen-btn svg {
+	width: 18px;
+	height: 18px;
+	fill: #fff;
+	display: inline-block !important;
+}
+
+/* Viewer Body */
+.pdf-secure-embed-body {
+	position: relative;
+	width: 100%;
+	height: 600px;
+	background: #525659;
+}
+
+.pdf-secure-iframe {
+	width: 100%;
+	height: 100%;
+	border: none;
+	display: block;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+	.pdf-secure-embed-body {
+		height: 450px;
+	}
+
+	.pdf-secure-embed-title span {
+		max-width: 200px;
+	}
+}
+
+@media (max-width: 480px) {
+	.pdf-secure-embed-body {
+		height: 350px;
+	}
+
+	.pdf-secure-embed-header {
+		padding: 8px 12px;
+	}
+
+	.pdf-secure-embed-title {
+		font-size: 13px;
+	}
+
+	.pdf-secure-embed-title span {
+		max-width: 150px;
+	}
+}
+
+/* Anti-print */
+@media print {
+	.pdf-secure-embed {
+		display: none !important;
+	}
+}
